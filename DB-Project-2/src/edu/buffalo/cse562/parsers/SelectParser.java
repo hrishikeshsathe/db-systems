@@ -27,29 +27,28 @@ public class SelectParser {
 	 */
 	public static void parseStatement(Statement statement) {
 		SelectBody body = ((Select) statement).getSelectBody();
-		
+
 		if(body instanceof PlainSelect){
 			Operator operator = getOperator((PlainSelect) body);
 			OperatorTest.dump(operator);
 		}//end if
 	}//end parseStatement
 
-	
+
 	/**
 	 * Accept a PlainSelect object and return an operator. Operator can be dumped to print result.
 	 * @param body - PlainSelect
 	 * @return Operator
 	 */
-	@SuppressWarnings("unchecked")
 	private static Operator getOperator(PlainSelect body) {
 		Table table = null;
 		Operator operator = null;
 		boolean allCol = false;
-		
+
 		//if there is a subQuery
 		if(body.getFromItem() instanceof SubSelect){
 			table = new Table();
-			
+
 			if(body.getFromItem().getAlias() == null){
 				table.setName("SubQuery" + Utility.subQueryCounter);
 				table.setAlias("SubQuery" + Utility.subQueryCounter);
@@ -58,16 +57,11 @@ public class SelectParser {
 				table.setName(body.getFromItem().getAlias());
 				table.setAlias(body.getFromItem().getAlias());
 			}
-			if(isAllColumns((PlainSelect) ((SubSelect) body.getFromItem()).getSelectBody())){
-				allCol = true;
-			}else{
-				createSchema(table, 
-						(ArrayList<SelectExpressionItem>) ((PlainSelect) ((SubSelect) 
-								body.getFromItem()).getSelectBody()).getSelectItems());
-			}//end else
 			operator = getOperator((PlainSelect) ((SubSelect) body.getFromItem()).getSelectBody());
+			if(isAllColumns(body))
+				allCol = true;
+			createSchema(table, ((PlainSelect) ((SubSelect) body.getFromItem()).getSelectBody()), operator);
 			operator = generateOperator(operator, table, body, allCol);
-
 			return operator;
 		}//end subQuery if
 		else{
@@ -83,6 +77,23 @@ public class SelectParser {
 		}//end else
 	}//end getOperator
 
+
+
+	@SuppressWarnings("unchecked")
+	/**
+	 * Check for allColumns. If true copy sub query schema as is.
+	 * @param table
+	 * @param body
+	 * @param operator
+	 */
+	private static void createSchema(Table table, PlainSelect body, Operator operator) {
+		if(isAllColumns(body)){
+			Utility.tableSchemas.put(table.getAlias(), Utility.tableSchemas.get(operator.getTable().getAlias()));
+		}else{
+			createSchema(table, (ArrayList<SelectExpressionItem>) body.getSelectItems());
+		}
+	}
+
 	/**
 	 * Create a schema for sub queries
 	 * @param table
@@ -90,7 +101,7 @@ public class SelectParser {
 	 */
 	private static void createSchema(Table table,
 			ArrayList<SelectExpressionItem> selectItems) {
-		
+
 		HashMap<String, Integer> schema = new HashMap<String, Integer>();
 		for(int i=0; i<selectItems.size(); i++)
 		{
@@ -107,8 +118,8 @@ public class SelectParser {
 		else
 			Utility.tableSchemas.put(table.getName(), schema);
 	}
-	
-	
+
+
 	/**
 	 * Generate an operator via parameters
 	 * @param readOperator
@@ -130,7 +141,7 @@ public class SelectParser {
 				body.getLimit());
 		return operator;
 	}
-	
+
 	/**
 	 * Check if project items are *
 	 * @param body
