@@ -16,7 +16,10 @@ public class AggregateFunctions {
 	public static LeafValue calculateSum(LeafValue a, LeafValue b){
 		Double sum = 0.0;
 		try {
-			sum = a.toDouble() + b.toDouble();
+			if(b == null)
+				sum = a.toDouble();
+			else
+				sum = a.toDouble() + b.toDouble();
 		} catch (InvalidLeaf e) {
 			e.printStackTrace();
 		}
@@ -32,13 +35,16 @@ public class AggregateFunctions {
 	public static LeafValue getMinimum(LeafValue a,	LeafValue b) {
 		Double minimum = 0.0;
 		try {
-			minimum = Math.min(a.toDouble(), b.toDouble());
+			if(b == null)
+				minimum = a.toDouble();
+			else
+				minimum = Math.min(a.toDouble(), b.toDouble());
 		} catch (InvalidLeaf e) {
 			e.printStackTrace();
 		}
 		return new DoubleValue(minimum.toString());
 	}
-	
+
 	/**
 	 * Function to accept two LeafValues and return the larger one
 	 * @param a
@@ -48,7 +54,10 @@ public class AggregateFunctions {
 	public static LeafValue getMaximum(LeafValue a,	LeafValue b) {
 		Double maximum = 0.0;
 		try {
-			maximum = Math.max(a.toDouble(), b.toDouble());
+			if(b == null)
+				maximum = a.toDouble();
+			else
+				maximum = Math.max(a.toDouble(), b.toDouble());
 		} catch (InvalidLeaf e) {
 			e.printStackTrace();
 		}
@@ -61,12 +70,14 @@ public class AggregateFunctions {
 	 * @return
 	 */
 	public static LeafValue getCount(LeafValue column) {
-		Long count = 0L;
-		try {
-			count = column.toLong() + 1;
-		} catch (InvalidLeaf e) {
-			e.printStackTrace();
-		}
+		Long count = 1L;
+		if(column != null){
+			try {
+				count = column.toLong() + 1;
+			} catch (InvalidLeaf e) {
+				e.printStackTrace();
+			}//end catch	
+		}//end if
 		return new LongValue(count.toString());
-	}
+	}//end getCount
 }

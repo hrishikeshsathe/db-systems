@@ -11,7 +11,7 @@ import net.sf.jsqlparser.expression.StringValue;
 
 public class Tuple {
 
-	ArrayList<LeafValue> oneTuple;
+	private ArrayList<LeafValue> oneTuple;
 
 	/**
 	 * Create a new tuple where each element is a LeafValue
@@ -52,11 +52,23 @@ public class Tuple {
 		}//for
 	}//end of constructor
 	
+	/**
+	 * Constructor for null tuple
+	 * @param size
+	 */
+	public Tuple(int size){
+		this.oneTuple = new ArrayList<LeafValue>();
+		for(int i = 0; i < size; i++)
+			this.oneTuple.add(null);
+	}
 	
 	public Tuple(ArrayList<LeafValue> tuple) {
 		this.oneTuple = tuple;
 	}
 
+	public ArrayList<LeafValue> getTuple(){
+		return this.oneTuple;
+	}
 	/**
 	 * Constructor for empty record
 	 */

@@ -22,7 +22,7 @@ public class GroupByOperator implements Operator {
 	ArrayList<SelectExpressionItem> projectItems;
 	HashMap<String, Integer> tableSchema;
 	HashMap<String, Tuple> allTuples;
-	
+
 	public GroupByOperator(Operator operator, Table table,
 			ArrayList<Expression> groupByColumns, ArrayList<SelectExpressionItem> projectItems) {
 		this.operator = operator;
@@ -30,7 +30,9 @@ public class GroupByOperator implements Operator {
 		this.groupByColumns = groupByColumns;
 		this.projectItems = projectItems;
 		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
+
 		generateTuple();
+
 	}
 
 	@Override
@@ -49,48 +51,62 @@ public class GroupByOperator implements Operator {
 	}
 
 	private void generateTuple(){
-		
-		Evaluator evaluator = null;
+
+		Evaluator groupByEvaluator = null;
+		Evaluator columnEvaluator = null;
 		Tuple tuple = null;
-		ArrayList<LeafValue> groupByTuple = new ArrayList<LeafValue>();
+		ArrayList<LeafValue> groupByTuple = null;
 		int numberOfTuples=0;
-		for(int i = 0; i < projectItems.size(); i++){
-			if(projectItems.get(i).getExpression().toString().contains("MIN"))
-				groupByTuple.add(new DoubleValue(Double.MAX_VALUE));
-			else if(projectItems.get(i).getExpression().toString().contains("MAX"))
-				groupByTuple.add(new DoubleValue(Double.MIN_VALUE));
-			else
-				groupByTuple.add(new DoubleValue("0"));
-		}
-			
+		String keyGroupByColumns = null;
+
 		allTuples = new HashMap<String, Tuple>();
 		tuple = operator.readOneTuple();
-		
+
 		while(tuple != null){
-			numberOfTuples++;
+			columnEvaluator = new Evaluator(tableSchema, tuple);
+			keyGroupByColumns = getColumnValue(columnEvaluator, groupByColumns);
+			if(!allTuples.containsKey(keyGroupByColumns))
+				allTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));
+
+			groupByTuple = allTuples.get(keyGroupByColumns).getTuple();
 			for(int i = 0; i < projectItems.size(); i++){
 				try {
-						evaluator = new Evaluator(tableSchema, tuple, groupByTuple.get(i));
-						groupByTuple.set(i, evaluator.eval(projectItems.get(i).getExpression()));
+					groupByEvaluator = new Evaluator(tableSchema, tuple, groupByTuple.get(i));
+					groupByTuple.set(i, groupByEvaluator.eval(projectItems.get(i).getExpression()));
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.out.println("SQLException in generateTuple() - GroupByOperator");
 				}//end catch
-				
 			}//end for
 			tuple = operator.readOneTuple();
 		}//end while
+
 		for(int i = 0; i < projectItems.size(); i++){
 			try {
 				if(projectItems.get(i).getExpression().toString().contains("AVG"))
 					groupByTuple.set(i, new DoubleValue(groupByTuple.get(i).toDouble()/numberOfTuples));
 			} catch (InvalidLeaf e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
-			
+			}// end of catch
 		}
-		allTuples.put(null, new Tuple(groupByTuple));
+	}
+
+	/**
+	 * Return the group by columns as a String
+	 * @param eval
+	 * @param groupByColumns
+	 * @return String
+	 */
+	private static String getColumnValue(Evaluator eval, ArrayList<Expression> groupByColumns){
+		StringBuffer value = new StringBuffer();;
+		try {
+			for(int i = 0; i < groupByColumns.size(); i++){
+				value.append(eval.eval(groupByColumns.get(i)).toString());
+				value.append(",");
+			}
+		} catch (SQLException e) {
+			System.out.println("SQLException in getColumnValue() - GroupByOperator");
+		}
+		return value.toString();
 	}
 }
 
