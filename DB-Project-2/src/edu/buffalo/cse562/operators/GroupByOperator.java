@@ -21,8 +21,10 @@ public class GroupByOperator implements Operator {
 	ArrayList<Expression> groupByColumns;
 	ArrayList<SelectExpressionItem> projectItems;
 	HashMap<String, Integer> tableSchema;
-	HashMap<String, Tuple> allTuples;
-
+	HashMap<String, Tuple> groupedTuples;
+	ArrayList<Tuple> allTuples;
+	static int index = -1;
+	
 	public GroupByOperator(Operator operator, Table table,
 			ArrayList<Expression> groupByColumns, ArrayList<SelectExpressionItem> projectItems) {
 		this.operator = operator;
@@ -30,19 +32,23 @@ public class GroupByOperator implements Operator {
 		this.groupByColumns = groupByColumns;
 		this.projectItems = projectItems;
 		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
-
 		generateTuple();
-
+		allTuples = new ArrayList<Tuple>(groupedTuples.values());
 	}
 
 	@Override
 	public void reset() {
 		operator.reset();
+		index = 0;
 	}
 
 	@Override
 	public Tuple readOneTuple() {
-		return allTuples.get(null);
+		index++;
+		if(index < allTuples.size())
+			return allTuples.get(index);
+		else 
+			return null;
 	}
 
 	@Override
@@ -59,16 +65,16 @@ public class GroupByOperator implements Operator {
 		int numberOfTuples=0;
 		String keyGroupByColumns = null;
 
-		allTuples = new HashMap<String, Tuple>();
+		groupedTuples = new HashMap<String, Tuple>();
 		tuple = operator.readOneTuple();
 
 		while(tuple != null){
 			columnEvaluator = new Evaluator(tableSchema, tuple);
 			keyGroupByColumns = getColumnValue(columnEvaluator, groupByColumns);
-			if(!allTuples.containsKey(keyGroupByColumns))
-				allTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));
+			if(!groupedTuples.containsKey(keyGroupByColumns))
+				groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));
 
-			groupByTuple = allTuples.get(keyGroupByColumns).getTuple();
+			groupByTuple = groupedTuples.get(keyGroupByColumns).getTuple();
 			for(int i = 0; i < projectItems.size(); i++){
 				try {
 					groupByEvaluator = new Evaluator(tableSchema, tuple, groupByTuple.get(i));
