@@ -3,6 +3,7 @@ package edu.buffalo.cse562.operators;
 import java.util.ArrayList;
 
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.Limit;
@@ -12,6 +13,9 @@ import edu.buffalo.cse562.utility.Tuple;
 
 public class OperatorTest {
 
+	static boolean isAggregate;
+	
+	
 	/**
 	 * Accepts an operator and dumps it to System.out
 	 * @param op
@@ -39,15 +43,27 @@ public class OperatorTest {
 	 * @return
 	 */
 	public static Operator executeSelect(Operator oper, Table table,
-			Expression condition, ArrayList<SelectExpressionItem> selectItems, ArrayList<Join> joins,
-			ArrayList<Expression> groupByColumnReferences, Expression having,
+			Expression condition, ArrayList<SelectExpressionItem> projectItems, ArrayList<Join> joins,
+			ArrayList<Expression> groupByColumns, Expression having,
 			boolean allCol, Limit limit) {
+		
+		isAggregate = false;
 		Operator operator = oper;
+		
+		for(int i=0; i<projectItems.size(); i++){
+			if(projectItems.get(i).getExpression() instanceof Function){
+				isAggregate = true;
+				break;
+			}				
+		}
+		if(isAggregate){
+			operator = new GroupByOperator(operator, table, groupByColumns, projectItems);
+		}
 		
 		if(condition != null){
 			operator = new SelectionOperator(operator, table, condition);
 		}
-		operator = new ProjectOperator(operator, table, selectItems, allCol);
+		operator = new ProjectOperator(operator, table, projectItems, allCol);
 		return operator;
 	}
 }

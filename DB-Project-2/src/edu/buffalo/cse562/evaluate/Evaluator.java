@@ -3,22 +3,45 @@ package edu.buffalo.cse562.evaluate;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LeafValue;
 import net.sf.jsqlparser.schema.Column;
 import edu.buffalo.cse562.Eval;
+import edu.buffalo.cse562.utility.AggregateFunctions;
 import edu.buffalo.cse562.utility.Tuple;
 
 public class Evaluator extends Eval{
 
 	private HashMap<String, Integer> schema;
 	private Tuple tuple;
+	private LeafValue column;
 
-	public Evaluator(HashMap<String, Integer> table, Tuple tuple)
+	/**
+	 * Constructor for project
+	 * @param tableSchema
+	 * @param tuple
+	 */
+	public Evaluator(HashMap<String, Integer> tableSchema, Tuple tuple)
 	{
-		this.schema=table;
-		this.tuple=tuple;
+		this.schema = tableSchema;
+		this.tuple = tuple;
 	}
-	
+	/**
+	 * Constructor for group by
+	 * @param tableSchema
+	 * @param tuple
+	 * @param column
+	 */
+	public Evaluator(HashMap<String, Integer> tableSchema, Tuple tuple,
+			LeafValue column) {
+		this.schema = tableSchema;
+		this.tuple = tuple;
+		this.column = column;
+	}
+
+	/**
+	 * returns LeafValue corresponding to a tuple given a column.
+	 */
 	public LeafValue eval(Column c) throws SQLException {
 		//If schema contains original column name - A
 		if(schema.containsKey(c.getColumnName())){
@@ -38,4 +61,23 @@ public class Evaluator extends Eval{
 		}//end else
 		return null;
 	}//end of eval
+	
+	/**
+	 * Evaluates a function - SUM, MIN, MAX, AVG, COUNT and returns a LeafValue
+	 */
+	public LeafValue eval(Function function) throws SQLException{
+		LeafValue functionParameter = eval((Column) function.getParameters().getExpressions().get(0));
+
+		if(function.getName().contains("SUM")){
+			return AggregateFunctions.calculateSum(functionParameter, column);
+		}
+		else if(function.getName().contains("MIN")){
+			return AggregateFunctions.getMinimum(functionParameter, column);
+		}
+		else if(function.getName().contains("MAX")){
+			return AggregateFunctions.getMaximum(functionParameter, column);
+		}
+		
+		return null;
+	}
 }
