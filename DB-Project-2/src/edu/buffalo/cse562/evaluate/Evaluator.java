@@ -6,6 +6,7 @@ import java.util.HashMap;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LeafValue;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.select.AllColumns;
 import edu.buffalo.cse562.Eval;
 import edu.buffalo.cse562.utility.AggregateFunctions;
 import edu.buffalo.cse562.utility.Tuple;
@@ -16,6 +17,7 @@ public class Evaluator extends Eval{
 	private Tuple tuple;
 	private LeafValue column;
 
+	
 	/**
 	 * Constructor for project
 	 * @param tableSchema
@@ -26,6 +28,8 @@ public class Evaluator extends Eval{
 		this.schema = tableSchema;
 		this.tuple = tuple;
 	}
+	
+	
 	/**
 	 * Constructor for group by
 	 * @param tableSchema
@@ -39,6 +43,7 @@ public class Evaluator extends Eval{
 		this.column = column;
 	}
 
+	
 	/**
 	 * returns LeafValue corresponding to a tuple given a column.
 	 */
@@ -62,6 +67,7 @@ public class Evaluator extends Eval{
 		return null;
 	}//end of eval
 	
+	
 	/**
 	 * Evaluates a function - SUM, MIN, MAX, AVG, COUNT and returns a LeafValue
 	 */
@@ -77,7 +83,13 @@ public class Evaluator extends Eval{
 		else if(function.getName().contains("MAX")){
 			return AggregateFunctions.getMaximum(functionParameter, column);
 		}
-		
+		else if(function.getName().contains("COUNT")){
+			return AggregateFunctions.getCount(column);
+		}
 		return null;
+	}
+	
+	public Tuple eval(AllColumns x){
+		return tuple;
 	}
 }

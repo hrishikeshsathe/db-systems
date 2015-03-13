@@ -34,6 +34,7 @@ public class SelectParser {
 		}//end if
 	}//end parseStatement
 
+	
 	/**
 	 * Accept a PlainSelect object and return an operator. Operator can be dumped to print result.
 	 * @param body - PlainSelect
@@ -57,20 +58,16 @@ public class SelectParser {
 				table.setName(body.getFromItem().getAlias());
 				table.setAlias(body.getFromItem().getAlias());
 			}
-			
-			createSchema(table, 
-					(ArrayList<SelectExpressionItem>) ((PlainSelect) ((SubSelect) 
-							body.getFromItem()).getSelectBody()).getSelectItems());
+			if(isAllColumns((PlainSelect) ((SubSelect) body.getFromItem()).getSelectBody())){
+				allCol = true;
+			}else{
+				createSchema(table, 
+						(ArrayList<SelectExpressionItem>) ((PlainSelect) ((SubSelect) 
+								body.getFromItem()).getSelectBody()).getSelectItems());
+			}//end else
 			operator = getOperator((PlainSelect) ((SubSelect) body.getFromItem()).getSelectBody());
-			operator = OperatorTest.executeSelect(operator,
-					table,
-					body.getWhere(),
-					(ArrayList<SelectExpressionItem>) body.getSelectItems(),
-					(ArrayList<Join>) body.getJoins(),
-					(ArrayList<Expression>) body.getGroupByColumnReferences(),
-					body.getHaving(),
-					allCol,
-					body.getLimit());
+			operator = generateOperator(operator, table, body, allCol);
+
 			return operator;
 		}//end subQuery if
 		else{
@@ -78,25 +75,19 @@ public class SelectParser {
 			if(table.getAlias() == null){
 				table.setAlias(table.getName());
 			}
-			if(((PlainSelect) body).getSelectItems().get(0) instanceof AllColumns)
-				allCol = true;
-			else
-				allCol = false;
+			allCol = isAllColumns(body);
 			String tableFile = Utility.dataDir.toString() + File.separator + table.getName() + ".dat";
 			Operator readOperator = new ReadOperator(new File(tableFile), table);
-			operator = OperatorTest.executeSelect(readOperator,
-					table,
-					body.getWhere(),
-					(ArrayList<SelectExpressionItem>) body.getSelectItems(),
-					(ArrayList<Join>) body.getJoins(),
-					(ArrayList<Expression>) body.getGroupByColumnReferences(),
-					body.getHaving(),
-					allCol,
-					body.getLimit());
+			operator = generateOperator(readOperator, table, body, allCol);
 			return operator;
-		}
-	}
+		}//end else
+	}//end getOperator
 
+	/**
+	 * Create a schema for sub queries
+	 * @param table
+	 * @param selectItems
+	 */
 	private static void createSchema(Table table,
 			ArrayList<SelectExpressionItem> selectItems) {
 		
@@ -115,5 +106,40 @@ public class SelectParser {
 			Utility.tableSchemas.put(table.getAlias(), schema);
 		else
 			Utility.tableSchemas.put(table.getName(), schema);
+	}
+	
+	
+	/**
+	 * Generate an operator via parameters
+	 * @param readOperator
+	 * @param table
+	 * @param body
+	 * @param allCol
+	 * @return Operator object
+	 */
+	private static Operator generateOperator(Operator readOperator, Table table, PlainSelect body, Boolean allCol){
+		@SuppressWarnings("unchecked")
+		Operator operator = OperatorTest.executeSelect(readOperator,
+				table,
+				body.getWhere(),
+				(ArrayList<SelectExpressionItem>) body.getSelectItems(),
+				(ArrayList<Join>) body.getJoins(),
+				(ArrayList<Expression>) body.getGroupByColumnReferences(),
+				body.getHaving(),
+				allCol,
+				body.getLimit());
+		return operator;
+	}
+	
+	/**
+	 * Check if project items are *
+	 * @param body
+	 * @return true if *, false otherwise
+	 */
+	private static boolean isAllColumns(PlainSelect body){
+		if(((PlainSelect) body).getSelectItems().get(0) instanceof AllColumns)
+			return true;
+		else
+			return false;
 	}
 }

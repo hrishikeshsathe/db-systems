@@ -14,8 +14,8 @@ import edu.buffalo.cse562.utility.Tuple;
 public class OperatorTest {
 
 	static boolean isAggregate;
-	
-	
+
+
 	/**
 	 * Accepts an operator and dumps it to System.out
 	 * @param op
@@ -46,20 +46,22 @@ public class OperatorTest {
 			Expression condition, ArrayList<SelectExpressionItem> projectItems, ArrayList<Join> joins,
 			ArrayList<Expression> groupByColumns, Expression having,
 			boolean allCol, Limit limit) {
-		
+
 		isAggregate = false;
 		Operator operator = oper;
-		
-		for(int i=0; i<projectItems.size(); i++){
-			if(projectItems.get(i).getExpression() instanceof Function){
-				isAggregate = true;
-				break;
-			}				
+
+		if(!allCol){
+			for(int i=0; i<projectItems.size(); i++){
+				if(projectItems.get(i).getExpression() instanceof Function){
+					isAggregate = true;
+					break;
+				}				
+			}
 		}
 		if(isAggregate){
 			operator = new GroupByOperator(operator, table, groupByColumns, projectItems);
 		}
-		
+
 		if(condition != null){
 			operator = new SelectionOperator(operator, table, condition);
 		}

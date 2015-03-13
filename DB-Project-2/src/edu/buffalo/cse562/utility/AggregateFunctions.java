@@ -3,6 +3,7 @@ package edu.buffalo.cse562.utility;
 import net.sf.jsqlparser.expression.DoubleValue;
 import net.sf.jsqlparser.expression.LeafValue;
 import net.sf.jsqlparser.expression.LeafValue.InvalidLeaf;
+import net.sf.jsqlparser.expression.LongValue;
 
 public class AggregateFunctions {
 
@@ -17,7 +18,6 @@ public class AggregateFunctions {
 		try {
 			sum = a.toDouble() + b.toDouble();
 		} catch (InvalidLeaf e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return new DoubleValue(sum.toString());
@@ -30,12 +30,10 @@ public class AggregateFunctions {
 	 * @return
 	 */
 	public static LeafValue getMinimum(LeafValue a,	LeafValue b) {
-		// TODO Auto-generated method stub
 		Double minimum = 0.0;
 		try {
 			minimum = Math.min(a.toDouble(), b.toDouble());
 		} catch (InvalidLeaf e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return new DoubleValue(minimum.toString());
@@ -48,14 +46,27 @@ public class AggregateFunctions {
 	 * @return
 	 */
 	public static LeafValue getMaximum(LeafValue a,	LeafValue b) {
-		// TODO Auto-generated method stub
 		Double maximum = 0.0;
 		try {
 			maximum = Math.max(a.toDouble(), b.toDouble());
 		} catch (InvalidLeaf e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return new DoubleValue(maximum.toString());
+	}
+
+	/**
+	 * Function to return count
+	 * @param column
+	 * @return
+	 */
+	public static LeafValue getCount(LeafValue column) {
+		Long count = 0L;
+		try {
+			count = column.toLong() + 1;
+		} catch (InvalidLeaf e) {
+			e.printStackTrace();
+		}
+		return new LongValue(count.toString());
 	}
 }
