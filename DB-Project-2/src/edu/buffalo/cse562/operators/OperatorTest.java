@@ -1,0 +1,53 @@
+package edu.buffalo.cse562.operators;
+
+import java.util.ArrayList;
+
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.Limit;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import edu.buffalo.cse562.utility.Tuple;
+
+
+public class OperatorTest {
+
+	/**
+	 * Accepts an operator and dumps it to System.out
+	 * @param op
+	 */
+	public static void dump(Operator op){
+		Tuple tuple = op.readOneTuple();
+		while(tuple != null){
+			if(!tuple.isEmptyRecord())
+				System.out.println(tuple.toString());
+			tuple = op.readOneTuple();
+		}
+	}
+
+	/**
+	 * Accepts multiple parameters and returns an operator to be dumped.
+	 * @param operator - 
+	 * @param table - Table object containing name
+	 * @param expression - where condition
+	 * @param selectItems - items for projection
+	 * @param joins - tables to be joined
+	 * @param groupByColumnReferences - columns for group by clause
+	 * @param having - having condition for group by
+	 * @param allCol - if it's * or not
+	 * @param limit - limit on number of tuples to dump
+	 * @return
+	 */
+	public static Operator executeSelect(Operator oper, Table table,
+			Expression condition, ArrayList<SelectExpressionItem> selectItems, ArrayList<Join> joins,
+			ArrayList<Expression> groupByColumnReferences, Expression having,
+			boolean allCol, Limit limit) {
+		Operator operator = oper;
+		
+		if(condition != null){
+			operator = new SelectionOperator(operator, table, condition);
+		}
+		operator = new ProjectOperator(operator, table, selectItems, allCol);
+		return operator;
+	}
+}
