@@ -74,7 +74,7 @@ public class Evaluator extends Eval{
 	public LeafValue eval(Function function) throws SQLException{
 		LeafValue functionParameter = eval((Column) function.getParameters().getExpressions().get(0));
 
-		if(function.getName().contains("SUM")){
+		if(function.getName().contains("SUM") || function.getName().contains("AVG")){
 			return AggregateFunctions.calculateSum(functionParameter, column);
 		}
 		else if(function.getName().contains("MIN")){

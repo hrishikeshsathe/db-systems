@@ -7,6 +7,7 @@ import java.util.HashMap;
 import net.sf.jsqlparser.expression.DoubleValue;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LeafValue;
+import net.sf.jsqlparser.expression.LeafValue.InvalidLeaf;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import edu.buffalo.cse562.evaluate.Evaluator;
@@ -52,7 +53,7 @@ public class GroupByOperator implements Operator {
 		Evaluator evaluator = null;
 		Tuple tuple = null;
 		ArrayList<LeafValue> groupByTuple = new ArrayList<LeafValue>();
-		
+		int numberOfTuples=0;
 		for(int i = 0; i < projectItems.size(); i++){
 			if(projectItems.get(i).getExpression().toString().contains("MIN"))
 				groupByTuple.add(new DoubleValue(Double.MAX_VALUE));
@@ -66,17 +67,29 @@ public class GroupByOperator implements Operator {
 		tuple = operator.readOneTuple();
 		
 		while(tuple != null){
+			numberOfTuples++;
 			for(int i = 0; i < projectItems.size(); i++){
 				try {
-					evaluator = new Evaluator(tableSchema, tuple, groupByTuple.get(i));
-					groupByTuple.set(i, evaluator.eval(projectItems.get(i).getExpression()));
+						evaluator = new Evaluator(tableSchema, tuple, groupByTuple.get(i));
+						groupByTuple.set(i, evaluator.eval(projectItems.get(i).getExpression()));
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}//end catch
+				
 			}//end for
 			tuple = operator.readOneTuple();
 		}//end while
+		for(int i = 0; i < projectItems.size(); i++){
+			try {
+				if(projectItems.get(i).getExpression().toString().contains("AVG"))
+					groupByTuple.set(i, new DoubleValue(groupByTuple.get(i).toDouble()/numberOfTuples));
+			} catch (InvalidLeaf e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
 		allTuples.put(null, new Tuple(groupByTuple));
 	}
 }
