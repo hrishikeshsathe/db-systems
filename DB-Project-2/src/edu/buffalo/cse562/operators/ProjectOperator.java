@@ -18,14 +18,16 @@ public class ProjectOperator implements Operator {
 	Table table;
 	HashMap<String, Integer> tableSchema;
 	boolean allColumns;
+	boolean isGroupBy;
 	
 	public ProjectOperator(Operator operator, Table table,
-			ArrayList<SelectExpressionItem> projectItems, boolean allCol) {
+			ArrayList<SelectExpressionItem> projectItems, boolean allCol, boolean isGroupBy) {
 		this.operator = operator;
 		this.toProject = projectItems;
 		this.table = table;
 		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
 		this.allColumns = allCol;
+		this.isGroupBy = isGroupBy;
 	}
 
 	@Override
@@ -41,7 +43,7 @@ public class ProjectOperator implements Operator {
 		
 		if(tempTuple == null)
 			return null;
-		else if(allColumns)
+		else if(allColumns || isGroupBy)
 			return tempTuple;
 		else if(tempTuple.isEmptyRecord())
 			return tempTuple;

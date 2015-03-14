@@ -23,7 +23,7 @@ public class GroupByOperator implements Operator {
 	HashMap<String, Integer> tableSchema;
 	HashMap<String, Tuple> groupedTuples;
 	ArrayList<Tuple> allTuples;
-	static int index = -1;
+	int index;
 	
 	public GroupByOperator(Operator operator, Table table,
 			ArrayList<Expression> groupByColumns, ArrayList<SelectExpressionItem> projectItems) {
@@ -33,13 +33,14 @@ public class GroupByOperator implements Operator {
 		this.projectItems = projectItems;
 		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
 		generateTuple();
+		index = -1;
 		allTuples = new ArrayList<Tuple>(groupedTuples.values());
 	}
 
 	@Override
 	public void reset() {
 		operator.reset();
-		index = 0;
+		index = -1;
 	}
 
 	@Override
