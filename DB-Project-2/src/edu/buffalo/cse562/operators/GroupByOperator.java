@@ -24,7 +24,7 @@ public class GroupByOperator implements Operator {
 	HashMap<String, Tuple> groupedTuples;
 	ArrayList<Tuple> allTuples;
 	int index;
-	
+
 	public GroupByOperator(Operator operator, Table table,
 			ArrayList<Expression> groupByColumns, ArrayList<SelectExpressionItem> projectItems) {
 		this.operator = operator;
@@ -70,11 +70,16 @@ public class GroupByOperator implements Operator {
 		tuple = operator.readOneTuple();
 
 		while(tuple != null){
-			columnEvaluator = new Evaluator(tableSchema, tuple);
-			keyGroupByColumns = getColumnValue(columnEvaluator, groupByColumns);
-			if(!groupedTuples.containsKey(keyGroupByColumns))
-				groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));
-
+			if(groupByColumns != null){
+				columnEvaluator = new Evaluator(tableSchema, tuple);
+				keyGroupByColumns = getColumnValue(columnEvaluator, groupByColumns);
+				if(!groupedTuples.containsKey(keyGroupByColumns))
+					groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));
+			}
+			else{
+				if(!groupedTuples.containsKey(null))
+					groupedTuples.put(null, new Tuple(projectItems.size()));
+			}
 			groupByTuple = groupedTuples.get(keyGroupByColumns).getTuple();
 			for(int i = 0; i < projectItems.size(); i++){
 				try {

@@ -65,7 +65,7 @@ public class OperatorTest {
 		if(condition != null){
 			operator = new SelectionOperator(operator, table, condition);
 		}
-		if(groupByColumns != null)
+		if(groupByColumns != null || isAggregate)
 			operator = new ProjectOperator(operator, table, projectItems, allCol, true);
 		else
 			operator = new ProjectOperator(operator, table, projectItems, allCol, false);
