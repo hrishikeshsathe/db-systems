@@ -3,10 +3,12 @@ package edu.buffalo.cse562.operators;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import net.sf.jsqlparser.expression.DoubleValue;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LeafValue;
 import net.sf.jsqlparser.expression.LeafValue.InvalidLeaf;
 import net.sf.jsqlparser.schema.Table;
@@ -24,8 +26,8 @@ public class GroupByOperator implements Operator {
 	HashMap<String, Integer> tableSchema;
 	HashMap<String, Tuple> groupedTuples;
 	ArrayList<Tuple> allTuples;
-	HashMap<String, Integer> countTuples;
 	int index;
+	HashMap<String, Integer> groupedTupleCount = new HashMap<String, Integer>();
 
 	public GroupByOperator(Operator operator, Table table,
 			ArrayList<Expression> groupByColumns, ArrayList<SelectExpressionItem> projectItems) {
@@ -69,56 +71,65 @@ public class GroupByOperator implements Operator {
 		String keyGroupByColumns = null;
 
 		groupedTuples = new HashMap<String, Tuple>();
-		countTuples = new HashMap<String, Integer>();
 		tuple = operator.readOneTuple();
 
 		while(tuple != null){
 			if(groupByColumns != null){
 				columnEvaluator = new Evaluator(tableSchema, tuple);
 				keyGroupByColumns = getColumnValue(columnEvaluator, groupByColumns);
-				if(!groupedTuples.containsKey(keyGroupByColumns)){
-					groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));
-					countTuples.put(keyGroupByColumns, 1);
-				}else{
-					countTuples.put(keyGroupByColumns, countTuples.get(keyGroupByColumns)+1);
-				}	
-				
-			}else{
-				if(!groupedTuples.containsKey(null)){
+				if(!groupedTuples.containsKey(keyGroupByColumns))
+				{
+					groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));				
+					groupedTupleCount.put(keyGroupByColumns, 1);
+				}
+				else
+				{
+					groupedTupleCount.put(keyGroupByColumns, groupedTupleCount.get(keyGroupByColumns)+1);
+				}
+			}
+			else{
+				if(!groupedTuples.containsKey(null))
+				{	
 					groupedTuples.put(null, new Tuple(projectItems.size()));
-					countTuples.put(null, 1);
-				}else{
-					countTuples.put(null, countTuples.get(null)+1);
-				}	
-			}				
-			
-			
+					groupedTupleCount.put(null, 1);
+				}
+				else
+				{
+					groupedTupleCount.put(null, groupedTupleCount.get(null)+1);
+				}
+			}
 			groupByTuple = groupedTuples.get(keyGroupByColumns).getTuple();
 			for(int i = 0; i < projectItems.size(); i++){
-				try {					
+				try {
 					groupByEvaluator = new Evaluator(tableSchema, tuple, groupByTuple.get(i));
-					if(projectItems.get(i).getExpression().toString().contains("AVG")){
-						Function function = (Function)projectItems.get(i).getExpression();							
-						int count = countTuples.get(keyGroupByColumns);
-						LeafValue avg = groupByEvaluator.eval(function, count);
-						groupByTuple.set(i,avg);
-					}else
-						groupByTuple.set(i, groupByEvaluator.eval(projectItems.get(i).getExpression()));
+					groupByTuple.set(i, groupByEvaluator.eval(projectItems.get(i).getExpression()));
 				} catch (SQLException e) {
 					System.out.println("SQLException in generateTuple() - GroupByOperator");
-				}
+				}//end catch
 			}//end for
 			tuple = operator.readOneTuple();
 		}//end while
 
-//		for(int i = 0; i < projectItems.size(); i++){
-//			try {
-//				if(projectItems.get(i).getExpression().toString().contains("AVG"))
-//					groupByTuple.set(i, new DoubleValue(groupByTuple.get(i).toDouble()/numberOfTuples));
-//			} catch (InvalidLeaf e) {
-//				e.printStackTrace();
-//			}// end of catch
-//		}
+		Iterator<Entry<String, Tuple>> it= groupedTuples.entrySet().iterator();
+		while(it.hasNext())
+		{
+			Map.Entry e=it.next();
+			for(int i=0;i<projectItems.size();i++)
+			{
+				if(projectItems.get(i).getExpression().toString().contains("AVG"))
+				{
+					String groupByKey=(String) e.getKey();
+					Integer count=groupedTupleCount.get(groupByKey);
+					ArrayList<LeafValue> groupedTuple = groupedTuples.get(groupByKey).getTuple();
+					try {
+						groupedTuple.set(i, new DoubleValue(groupedTuples.get(groupByKey).get(i).toDouble()/count));
+					} catch (InvalidLeaf e1) {
+						System.out.println("InvalidLeaf Exception while calculating average");
+					}
+					groupedTuples.put(groupByKey,new Tuple(groupedTuple));
+				}
+			}
+		}
 	}
 
 	/**

@@ -27,34 +27,6 @@ public class AggregateFunctions {
 	}
 
 	/**
-	 * Function that accepts two LeafValues and returns their sum
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	public static LeafValue calculateAvg(LeafValue a, LeafValue b, int count){
-		Double sum = 0.0;
-		Double avg = 0.0;
-		try {
-			if(b == null){
-				sum = a.toDouble();
-				avg = sum/count;
-			}				
-			else{
-				if(count > 1)
-					sum = (a.toDouble()) + (b.toDouble()*(count-1));
-				else
-					sum = a.toDouble() + b.toDouble();
-				avg = sum/count;
-			}
-				
-		} catch (InvalidLeaf e) {
-			e.printStackTrace();
-		}
-		return new DoubleValue(avg.toString());
-	}
-
-	/**
 	 * Function to accept two LeafValues and return the smaller one
 	 * @param a
 	 * @param b

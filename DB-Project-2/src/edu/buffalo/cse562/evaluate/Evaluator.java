@@ -78,7 +78,7 @@ public class Evaluator extends Eval{
 		
 		LeafValue functionParameter = eval((Column) function.getParameters().getExpressions().get(0));
 
-		if(function.getName().contains("SUM") ){
+		if(function.getName().contains("SUM") || function.getName().contains("AVG")){
 			return AggregateFunctions.calculateSum(functionParameter, column);
 		}
 		else if(function.getName().contains("MIN")){
@@ -86,18 +86,6 @@ public class Evaluator extends Eval{
 		}
 		else if(function.getName().contains("MAX")){
 			return AggregateFunctions.getMaximum(functionParameter, column);
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Evaluates a function - SUM, MIN, MAX, AVG, COUNT and returns a LeafValue
-	 */
-	public LeafValue eval(Function function, int count) throws SQLException{
-		if(function.getName().contains("AVG")){
-			LeafValue functionParameter = eval((Column) function.getParameters().getExpressions().get(0));
-			return AggregateFunctions.calculateAvg(functionParameter, column, count);
 		}
 		return null;
 	}
