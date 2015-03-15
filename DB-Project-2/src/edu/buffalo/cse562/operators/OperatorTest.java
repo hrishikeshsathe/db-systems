@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.select.Distinct;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
@@ -45,7 +46,7 @@ public class OperatorTest {
 	public static Operator executeSelect(Operator oper, Table table,
 			Expression condition, ArrayList<SelectExpressionItem> projectItems, ArrayList<Join> joins,
 			ArrayList<Expression> groupByColumns, Expression having,
-			boolean allCol, Limit limit) {
+			boolean allCol, Limit limit, Distinct distinct) {
 
 		isAggregate = false;
 		Operator operator = oper;
@@ -59,12 +60,17 @@ public class OperatorTest {
 			}
 		}
 		if(isAggregate){
-			operator = new GroupByOperator(operator, table, groupByColumns, projectItems);
+			operator = new GroupByOperator(operator, table, groupByColumns, projectItems, false);
 		}
 
 		if(condition != null){
 			operator = new SelectionOperator(operator, table, condition);
 		}
+		
+		if(distinct != null && groupByColumns==null){
+			operator = new GroupByOperator(operator, table, null, projectItems, true);
+		}
+		
 		if(groupByColumns != null || isAggregate)
 			operator = new ProjectOperator(operator, table, projectItems, allCol, true);
 		else

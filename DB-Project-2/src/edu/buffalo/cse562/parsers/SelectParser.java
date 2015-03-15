@@ -138,7 +138,8 @@ public class SelectParser {
 				(ArrayList<Expression>) body.getGroupByColumnReferences(),
 				body.getHaving(),
 				allCol,
-				body.getLimit());
+				body.getLimit(),
+				body.getDistinct());
 		return operator;
 	}
 

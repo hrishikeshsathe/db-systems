@@ -28,14 +28,16 @@ public class GroupByOperator implements Operator {
 	ArrayList<Tuple> allTuples;
 	int index;
 	HashMap<String, Integer> groupedTupleCount = new HashMap<String, Integer>();
-
+	boolean distinct; 
+	
 	public GroupByOperator(Operator operator, Table table,
-			ArrayList<Expression> groupByColumns, ArrayList<SelectExpressionItem> projectItems) {
+			ArrayList<Expression> groupByColumns, ArrayList<SelectExpressionItem> projectItems, boolean distinct) {
 		this.operator = operator;
 		this.table = table;
 		this.groupByColumns = groupByColumns;
 		this.projectItems = projectItems;
 		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
+		this.distinct = distinct;
 		generateTuple();
 		index = -1;
 		allTuples = new ArrayList<Tuple>(groupedTuples.values());
@@ -77,6 +79,20 @@ public class GroupByOperator implements Operator {
 			if(groupByColumns != null){
 				columnEvaluator = new Evaluator(tableSchema, tuple);
 				keyGroupByColumns = getColumnValue(columnEvaluator, groupByColumns);
+				
+				if(!groupedTuples.containsKey(keyGroupByColumns))
+				{
+					groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));				
+					groupedTupleCount.put(keyGroupByColumns, 1);
+				}
+				else
+				{
+					groupedTupleCount.put(keyGroupByColumns, groupedTupleCount.get(keyGroupByColumns)+1);
+				}
+			}
+			else if(distinct == true){
+				columnEvaluator = new Evaluator(tableSchema, tuple);
+				keyGroupByColumns = getColumnValueForDistinct(columnEvaluator, projectItems);
 				if(!groupedTuples.containsKey(keyGroupByColumns))
 				{
 					groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));				
@@ -143,6 +159,19 @@ public class GroupByOperator implements Operator {
 		try {
 			for(int i = 0; i < groupByColumns.size(); i++){
 				value.append(eval.eval(groupByColumns.get(i)).toString());
+				value.append(",");
+			}
+		} catch (SQLException e) {
+			System.out.println("SQLException in getColumnValue() - GroupByOperator");
+		}
+		return value.toString();
+	}
+	
+	private static String getColumnValueForDistinct(Evaluator eval, ArrayList<SelectExpressionItem> groupByColumns){
+		StringBuffer value = new StringBuffer();;
+		try {
+			for(int i = 0; i < groupByColumns.size(); i++){
+				value.append(eval.eval(groupByColumns.get(i).getExpression()).toString());
 				value.append(",");
 			}
 		} catch (SQLException e) {
