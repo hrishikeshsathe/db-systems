@@ -65,6 +65,8 @@ public class OperatorTest {
 
 		if(condition != null){
 			operator = new SelectionOperator(operator, table, condition);
+		}else if(having != null){
+			operator = new SelectionOperator(operator, table, having);
 		}
 		
 		if(distinct != null && groupByColumns==null){
