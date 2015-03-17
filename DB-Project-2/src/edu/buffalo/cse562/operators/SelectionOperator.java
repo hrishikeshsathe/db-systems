@@ -25,6 +25,7 @@ public class SelectionOperator implements Operator {
 		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
 	}
 
+	
 	@Override
 	public void reset() {
 		operator.reset();

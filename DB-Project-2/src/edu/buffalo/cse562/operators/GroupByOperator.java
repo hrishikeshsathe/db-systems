@@ -14,6 +14,7 @@ import net.sf.jsqlparser.expression.LeafValue.InvalidLeaf;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import edu.buffalo.cse562.evaluate.Evaluator;
+import edu.buffalo.cse562.parsers.SelectParser;
 import edu.buffalo.cse562.utility.Tuple;
 import edu.buffalo.cse562.utility.Utility;
 
@@ -29,18 +30,46 @@ public class GroupByOperator implements Operator {
 	int index;
 	HashMap<String, Integer> groupedTupleCount = new HashMap<String, Integer>();
 	boolean distinct; 
+	Table newSchema;
 	
 	public GroupByOperator(Operator operator, Table table,
-			ArrayList<Expression> groupByColumns, ArrayList<SelectExpressionItem> projectItems, boolean distinct) {
+			ArrayList<Expression> groupByColumns, ArrayList<SelectExpressionItem> projectItems, boolean distinct, Table newSchema) {
 		this.operator = operator;
 		this.table = table;
 		this.groupByColumns = groupByColumns;
 		this.projectItems = projectItems;
 		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
 		this.distinct = distinct;
+		createGroupBySchema();
 		generateTuple();
 		index = -1;
 		allTuples = new ArrayList<Tuple>(groupedTuples.values());
+	}
+
+	private void createGroupBySchema() {
+		Table table=new Table();
+		String tableName=null;
+		if(groupByColumns!=null)
+		tableName="GroupBy_"+groupByColumns.toString();
+		else
+		{
+			tableName="GroupBy"+Utility.grpByCounter; 
+			Utility.grpByCounter++;
+		}
+		table.setName(tableName);
+		table.setAlias(tableName);
+		
+		SelectParser.createSchema(table,this.projectItems);
+		this.newSchema=table;
+		
+	}
+
+	public Table getNewSchema() {
+		return newSchema;
+	}
+
+	public void setNewSchema(Table newSchema) {
+		this.newSchema = newSchema;
 	}
 
 	@Override

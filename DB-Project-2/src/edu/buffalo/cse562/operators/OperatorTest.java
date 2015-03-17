@@ -15,18 +15,35 @@ import edu.buffalo.cse562.utility.Tuple;
 public class OperatorTest {
 
 	static boolean isAggregate;
-
+	static boolean isHaving;
 
 	/**
 	 * Accepts an operator and dumps it to System.out
 	 * @param op
+	 * @param limit 
 	 */
-	public static void dump(Operator op){
+	public static void dump(Operator op, Limit limit){
 		Tuple tuple = op.readOneTuple();
-		while(tuple != null){
+		
+		
+		if(limit!=null)
+			{
+			long lim=limit.getRowCount();
+			int counter=0;
+			while(tuple != null && counter<lim){
 			if(!tuple.isEmptyRecord())
 				System.out.println(tuple.toString());
+			counter++;
 			tuple = op.readOneTuple();
+		}
+			}
+		else
+		{
+			while(tuple != null){
+				if(!tuple.isEmptyRecord())
+					System.out.println(tuple.toString());
+				tuple = op.readOneTuple();
+			}
 		}
 	}
 
@@ -49,7 +66,9 @@ public class OperatorTest {
 			boolean allCol, Limit limit, Distinct distinct) {
 
 		isAggregate = false;
+		isHaving=false;
 		Operator operator = oper;
+		
 
 		if(!allCol){
 			for(int i=0; i<projectItems.size(); i++){
@@ -60,17 +79,20 @@ public class OperatorTest {
 			}
 		}
 		if(isAggregate){
-			operator = new GroupByOperator(operator, table, groupByColumns, projectItems, false);
+			operator = new GroupByOperator(operator, table, groupByColumns, projectItems, false,null);
 		}
 
 		if(condition != null){
+			isHaving=false;
 			operator = new SelectionOperator(operator, table, condition);
 		}else if(having != null){
-			operator = new SelectionOperator(operator, table, having);
+			isHaving=true;
+			if(operator instanceof GroupByOperator)
+			operator = new SelectionOperator(operator, ((GroupByOperator) operator).getNewSchema(),having);
 		}
 		
 		if(distinct != null && groupByColumns==null){
-			operator = new GroupByOperator(operator, table, null, projectItems, true);
+			operator = new GroupByOperator(operator, table, null, projectItems, true,null);
 		}
 		
 		if(groupByColumns != null || isAggregate)

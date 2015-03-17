@@ -30,7 +30,7 @@ public class SelectParser {
 
 		if(body instanceof PlainSelect){
 			Operator operator = getOperator((PlainSelect) body);
-			OperatorTest.dump(operator);
+			OperatorTest.dump(operator,((PlainSelect) body).getLimit());
 		}//end if
 	}//end parseStatement
 
@@ -99,7 +99,7 @@ public class SelectParser {
 	 * @param table
 	 * @param selectItems
 	 */
-	private static void createSchema(Table table,
+	public static void createSchema(Table table,
 			ArrayList<SelectExpressionItem> selectItems) {
 
 		HashMap<String, Integer> schema = new HashMap<String, Integer>();

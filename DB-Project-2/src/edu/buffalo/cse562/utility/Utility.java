@@ -12,4 +12,5 @@ public class Utility {
 	public static HashMap<String, ArrayList<String>> tableDataTypes = null;
 	public static int subQueryCounter = 0;
 	public static Tuple noResult = new Tuple();
+	public static int grpByCounter=0;
 }
