@@ -39,7 +39,7 @@ public class ProjectOperator implements Operator {
 	public Tuple readOneTuple() {
 		Tuple tempTuple = operator.readOneTuple();
 		ArrayList<LeafValue> tuple = new ArrayList<LeafValue>();
-		Evaluator evaluator = new Evaluator(tableSchema, tempTuple);
+		Evaluator evaluator = new Evaluator(tableSchema, tempTuple, false);
 		
 		if(tempTuple == null)
 			return null;

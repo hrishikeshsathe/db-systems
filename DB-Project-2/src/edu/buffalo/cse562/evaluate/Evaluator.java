@@ -15,20 +15,21 @@ public class Evaluator extends Eval{
 	private HashMap<String, Integer> schema;
 	private Tuple tuple;
 	private LeafValue column;
+	private boolean isHaving;
 
-	
 	/**
 	 * Constructor for project
 	 * @param tableSchema
 	 * @param tuple
 	 */
-	public Evaluator(HashMap<String, Integer> tableSchema, Tuple tuple)
+	public Evaluator(HashMap<String, Integer> tableSchema, Tuple tuple, boolean isHaving)
 	{
 		this.schema = tableSchema;
 		this.tuple = tuple;
+		this.isHaving = isHaving;
 	}
-	
-	
+
+
 	/**
 	 * Constructor for group by
 	 * @param tableSchema
@@ -42,7 +43,7 @@ public class Evaluator extends Eval{
 		this.column = column;
 	}
 
-	
+
 	/**
 	 * returns LeafValue corresponding to a tuple given a column.
 	 */
@@ -65,27 +66,30 @@ public class Evaluator extends Eval{
 		}//end else
 		return null;
 	}//end of eval
-	
-	
+
+
 	/**
 	 * Evaluates a function - SUM, MIN, MAX, AVG, COUNT and returns a LeafValue
 	 */
 	public LeafValue eval(Function function) throws SQLException{
-		
-		if(function.getName().contains("COUNT")){
-			return AggregateFunctions.getCount(column);
-		}
-		
-		LeafValue functionParameter = eval((Column) function.getParameters().getExpressions().get(0));
 
-		if(function.getName().contains("SUM") || function.getName().contains("AVG")){
-			return AggregateFunctions.calculateSum(functionParameter, column);
+		if(isHaving){
+			return eval(new Column(null, function.toString()));
 		}
-		else if(function.getName().contains("MIN")){
-			return AggregateFunctions.getMinimum(functionParameter, column);
-		}
-		else if(function.getName().contains("MAX")){
-			return AggregateFunctions.getMaximum(functionParameter, column);
+		else{
+			if(function.getName().contains("COUNT"))
+				return AggregateFunctions.getCount(column);
+			
+			LeafValue functionParameter = eval((Column) function.getParameters().getExpressions().get(0));
+
+			if(function.getName().contains("SUM") || function.getName().contains("AVG"))
+				return AggregateFunctions.calculateSum(functionParameter, column);
+			
+			else if(function.getName().contains("MIN"))
+				return AggregateFunctions.getMinimum(functionParameter, column);
+			
+			else if(function.getName().contains("MAX"))
+				return AggregateFunctions.getMaximum(functionParameter, column);
 		}
 		return null;
 	}

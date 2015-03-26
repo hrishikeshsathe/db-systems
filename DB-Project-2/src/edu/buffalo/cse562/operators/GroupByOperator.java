@@ -4,7 +4,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import net.sf.jsqlparser.expression.DoubleValue;
@@ -31,7 +30,7 @@ public class GroupByOperator implements Operator {
 	HashMap<String, Integer> groupedTupleCount = new HashMap<String, Integer>();
 	boolean distinct; 
 	Table newSchema;
-	
+
 	public GroupByOperator(Operator operator, Table table,
 			ArrayList<Expression> groupByColumns, ArrayList<SelectExpressionItem> projectItems, boolean distinct, Table newSchema) {
 		this.operator = operator;
@@ -46,22 +45,25 @@ public class GroupByOperator implements Operator {
 		allTuples = new ArrayList<Tuple>(groupedTuples.values());
 	}
 
+	/**
+	 * Create schema for group by
+	 */
 	private void createGroupBySchema() {
-		Table table=new Table();
-		String tableName=null;
-		if(groupByColumns!=null)
-		tableName="GroupBy_"+groupByColumns.toString();
+		Table table = new Table();
+		String tableName = null;
+		if(groupByColumns != null)
+			tableName="GroupBy_" + groupByColumns.toString();
 		else
 		{
-			tableName="GroupBy"+Utility.grpByCounter; 
+			tableName="GroupBy" + Utility.grpByCounter; 
 			Utility.grpByCounter++;
 		}
 		table.setName(tableName);
 		table.setAlias(tableName);
-		
+
 		SelectParser.createSchema(table,this.projectItems);
 		this.newSchema=table;
-		
+
 	}
 
 	public Table getNewSchema() {
@@ -89,7 +91,7 @@ public class GroupByOperator implements Operator {
 
 	@Override
 	public Table getTable() {
-		return null;
+		return this.table;
 	}
 
 	private void generateTuple(){
@@ -98,67 +100,69 @@ public class GroupByOperator implements Operator {
 		Evaluator columnEvaluator = null;
 		Tuple tuple = null;
 		ArrayList<LeafValue> groupByTuple = null;
-		int numberOfTuples=0;
 		String keyGroupByColumns = null;
 
 		groupedTuples = new HashMap<String, Tuple>();
 		tuple = operator.readOneTuple();
 
 		while(tuple != null){
-			if(groupByColumns != null){
-				columnEvaluator = new Evaluator(tableSchema, tuple);
-				keyGroupByColumns = getColumnValue(columnEvaluator, groupByColumns);
-				
-				if(!groupedTuples.containsKey(keyGroupByColumns))
-				{
-					groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));				
-					groupedTupleCount.put(keyGroupByColumns, 1);
+			if(!tuple.isEmptyRecord()){
+				if(groupByColumns != null){
+					columnEvaluator = new Evaluator(tableSchema, tuple, false);
+					keyGroupByColumns = getColumnValue(columnEvaluator, groupByColumns);
+
+					if(!groupedTuples.containsKey(keyGroupByColumns))
+					{
+						groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));				
+						groupedTupleCount.put(keyGroupByColumns, 1);
+					}
+					else
+					{
+						groupedTupleCount.put(keyGroupByColumns, groupedTupleCount.get(keyGroupByColumns)+1);
+					}
 				}
-				else
-				{
-					groupedTupleCount.put(keyGroupByColumns, groupedTupleCount.get(keyGroupByColumns)+1);
+				else if(distinct == true){
+					columnEvaluator = new Evaluator(tableSchema, tuple, false);
+					keyGroupByColumns = getColumnValueForDistinct(columnEvaluator, projectItems);
+					
+					if(!groupedTuples.containsKey(keyGroupByColumns))
+					{
+						groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));				
+						groupedTupleCount.put(keyGroupByColumns, 1);
+					}
+					else
+					{
+						groupedTupleCount.put(keyGroupByColumns, groupedTupleCount.get(keyGroupByColumns)+1);
+					}
 				}
+				else{
+					if(!groupedTuples.containsKey(null))
+					{	
+						groupedTuples.put(null, new Tuple(projectItems.size()));
+						groupedTupleCount.put(null, 1);
+					}
+					else
+					{
+						groupedTupleCount.put(null, groupedTupleCount.get(null)+1);
+					}
+				}
+				groupByTuple = groupedTuples.get(keyGroupByColumns).getTuple();
+				for(int i = 0; i < projectItems.size(); i++){
+					try {
+						groupByEvaluator = new Evaluator(tableSchema, tuple, groupByTuple.get(i));
+						groupByTuple.set(i, groupByEvaluator.eval(projectItems.get(i).getExpression()));
+					} catch (SQLException e) {
+						System.out.println("SQLException in generateTuple() - GroupByOperator");
+					}//end catch
+				}//end for
 			}
-			else if(distinct == true){
-				columnEvaluator = new Evaluator(tableSchema, tuple);
-				keyGroupByColumns = getColumnValueForDistinct(columnEvaluator, projectItems);
-				if(!groupedTuples.containsKey(keyGroupByColumns))
-				{
-					groupedTuples.put(keyGroupByColumns, new Tuple(projectItems.size()));				
-					groupedTupleCount.put(keyGroupByColumns, 1);
-				}
-				else
-				{
-					groupedTupleCount.put(keyGroupByColumns, groupedTupleCount.get(keyGroupByColumns)+1);
-				}
-			}
-			else{
-				if(!groupedTuples.containsKey(null))
-				{	
-					groupedTuples.put(null, new Tuple(projectItems.size()));
-					groupedTupleCount.put(null, 1);
-				}
-				else
-				{
-					groupedTupleCount.put(null, groupedTupleCount.get(null)+1);
-				}
-			}
-			groupByTuple = groupedTuples.get(keyGroupByColumns).getTuple();
-			for(int i = 0; i < projectItems.size(); i++){
-				try {
-					groupByEvaluator = new Evaluator(tableSchema, tuple, groupByTuple.get(i));
-					groupByTuple.set(i, groupByEvaluator.eval(projectItems.get(i).getExpression()));
-				} catch (SQLException e) {
-					System.out.println("SQLException in generateTuple() - GroupByOperator");
-				}//end catch
-			}//end for
 			tuple = operator.readOneTuple();
 		}//end while
 
-		Iterator<Entry<String, Tuple>> it= groupedTuples.entrySet().iterator();
+		Iterator<Entry<String, Tuple>> it = groupedTuples.entrySet().iterator();
 		while(it.hasNext())
 		{
-			Map.Entry e=it.next();
+			Entry<String, Tuple> e=it.next();
 			for(int i=0;i<projectItems.size();i++)
 			{
 				if(projectItems.get(i).getExpression().toString().contains("AVG"))
@@ -195,7 +199,13 @@ public class GroupByOperator implements Operator {
 		}
 		return value.toString();
 	}
-	
+
+	/**
+	 * Return the group by columns for distinct
+	 * @param eval
+	 * @param groupByColumns
+	 * @return
+	 */
 	private static String getColumnValueForDistinct(Evaluator eval, ArrayList<SelectExpressionItem> groupByColumns){
 		StringBuffer value = new StringBuffer();;
 		try {

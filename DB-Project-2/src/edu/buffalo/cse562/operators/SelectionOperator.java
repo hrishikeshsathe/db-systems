@@ -16,13 +16,15 @@ public class SelectionOperator implements Operator {
 	HashMap<String, Integer> tableSchema;
 	Expression condition;
 	Table table;
+	boolean isHaving;
 
 	public SelectionOperator(Operator operator, Table table,
-			Expression condition) {
+			Expression condition, boolean isHaving) {
 		this.table = table;
 		this.operator = operator;
 		this.condition = condition;
 		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
+		this.isHaving = isHaving;
 	}
 
 	
@@ -39,7 +41,7 @@ public class SelectionOperator implements Operator {
 		if(tuple == null)
 			return null;
 		else{
-			Evaluator evaluator = new Evaluator(tableSchema, tuple);
+			Evaluator evaluator = new Evaluator(tableSchema, tuple, isHaving);
 			try{
 				BooleanValue bool = (BooleanValue) evaluator.eval(condition);
 				if(!bool.getValue())
