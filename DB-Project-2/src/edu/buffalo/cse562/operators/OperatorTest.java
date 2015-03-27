@@ -3,6 +3,9 @@ package edu.buffalo.cse562.operators;
 import java.io.File;
 import java.util.ArrayList;
 
+
+import java.util.List;
+
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Table;
@@ -10,6 +13,7 @@ import net.sf.jsqlparser.statement.select.Distinct;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.OrderByElement;
 import edu.buffalo.cse562.utility.Tuple;
 import edu.buffalo.cse562.utility.Utility;
 
@@ -58,12 +62,13 @@ public class OperatorTest {
 	 * @param having - having condition for group by
 	 * @param allCol - if it's * or not
 	 * @param limit - limit on number of tuples to dump
+	 * * @param distinct - boolean value to indicate if select items are distinct
 	 * @return
 	 */
 	public static Operator executeSelect(Operator oper, Table table,
 			Expression condition, ArrayList<SelectExpressionItem> projectItems, ArrayList<Join> joins,
 			ArrayList<Expression> groupByColumns, Expression having,
-			boolean allCol, Limit limit, Distinct distinct) {
+			boolean allCol, Limit limit, Distinct distinct, List<OrderByElement> orderByColumns) {
 
 		isAggregate = false;
 		Operator operator = oper;
@@ -108,6 +113,10 @@ public class OperatorTest {
 			operator = new ProjectOperator(operator, table, projectItems, allCol, true);
 		else
 			operator = new ProjectOperator(operator, table, projectItems, allCol, false);
+		
+		if(orderByColumns !=null){
+			operator = new OrderByOperator(operator, table, orderByColumns);
+		}
 		return operator;
 	}
 }

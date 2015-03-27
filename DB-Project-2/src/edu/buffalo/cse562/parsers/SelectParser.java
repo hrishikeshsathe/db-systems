@@ -138,7 +138,8 @@ public class SelectParser {
 				body.getHaving(),
 				allCol,
 				body.getLimit(),
-				body.getDistinct());
+				body.getDistinct(),
+				body.getOrderByElements());
 		return operator;
 	}
 

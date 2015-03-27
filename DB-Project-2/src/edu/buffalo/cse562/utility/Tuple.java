@@ -1,18 +1,23 @@
 package edu.buffalo.cse562.utility;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import net.sf.jsqlparser.expression.DateValue;
 import net.sf.jsqlparser.expression.DoubleValue;
 import net.sf.jsqlparser.expression.LeafValue;
+import net.sf.jsqlparser.expression.LeafValue.InvalidLeaf;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
 
 
-public class Tuple {
+public class Tuple implements Comparable<Tuple>{
 
 	private ArrayList<LeafValue> oneTuple;
-
+	private static ArrayList<Integer> orderByIndexes;
+	private static String tableName;
 	/**
 	 * Create a new tuple where each element is a LeafValue
 	 * @param oneRow
@@ -122,5 +127,76 @@ public class Tuple {
 		else 
 			return false;
 	}
+
+
+	
+	@Override
+	public int compareTo(Tuple t2) {
+		// TODO Auto-generated method stub
+		int value = getComparatorValue(this, t2, tableName, orderByIndexes.get(0));
+      if (value == 0 && orderByIndexes.size()>1) {
+           value = getComparatorValue(this, t2, tableName, orderByIndexes.get(1));
+          if (value == 0 && orderByIndexes.size()>2) {
+          	value = getComparatorValue(this, t2, tableName, orderByIndexes.get(2));
+          	if (value == 0 && orderByIndexes.size()>3) {
+              	value = getComparatorValue(this, t2, tableName, orderByIndexes.get(3));
+              }
+          }
+      }	        
+		return value;
+	}
+	
+	public static ArrayList<Tuple> sortTupleList(ArrayList<Tuple> tuples, ArrayList<Integer> orderBy, String table){
+		orderByIndexes = orderBy;
+		tableName = table;
+		Collections.sort(tuples);
+		return tuples;
+	}
+	
+	public int getComparatorValue(Tuple t1, Tuple t2, String table, int index){
+		
+		ArrayList<String> dataType = Utility.tableDataTypes.get(table);
+		switch(dataType.get(index).toLowerCase()){
+		case "int":
+			try {
+				return ((Long)t1.get(orderByIndexes.get(index)).toLong()).compareTo(((Long)t2.get(orderByIndexes.get(index)).toLong()));
+			} catch (InvalidLeaf e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} 			
+		case "decimal":
+		case "double":
+			try {
+				return ((Double)t1.get(orderByIndexes.get(index)).toDouble()).compareTo(((Double)t2.get(orderByIndexes.get(index)).toDouble()));
+			} catch (InvalidLeaf e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		case "date": 
+			try {
+				return ((Long)t1.get(orderByIndexes.get(index)).toLong()).compareTo(((Long)t2.get(orderByIndexes.get(index)).toLong()));
+			} catch (InvalidLeaf e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		case "char": 
+			return ((String)t1.get(orderByIndexes.get(index)).toString()).compareTo(((String)t2.get(orderByIndexes.get(index)).toString()));			
+		case "string": 
+			return ((String)t1.get(orderByIndexes.get(index)).toString()).compareTo(((String)t2.get(orderByIndexes.get(index)).toString())); 
+		case "varchar":
+			return ((String)t1.get(orderByIndexes.get(index)).toString()).compareTo(((String)t2.get(orderByIndexes.get(index)).toString())); 
+		default:
+		{
+			if(dataType.get(index).contains("CHAR") || dataType.get(index).contains("char")){
+				return ((String)t1.get(orderByIndexes.get(index)).toString()).compareTo(((String)t2.get(orderByIndexes.get(index)).toString()));
+			}
+		}//default
+	}//switch
+		return 0;
+	}
+
+	
 
 }
