@@ -94,11 +94,24 @@ public class Tuple {
 	public String toString(){
 		String tuple = "";
 		for(int i = 0; i < oneTuple.size() - 1; i++){
-			tuple += oneTuple.get(i) + "|";
+			tuple += checkIfStringValue(oneTuple.get(i)) + "|";
 		}
-		tuple += oneTuple.get(oneTuple.size() - 1);
+		tuple += checkIfStringValue(oneTuple.get(oneTuple.size() - 1));
 		return tuple;
 	}
+	
+	/**
+	 * Function to check if column is of type StringValue. Return without quotes if true
+	 * @param column
+	 * @return
+	 */
+	private String checkIfStringValue(LeafValue column) {
+		if(column instanceof StringValue)
+			return ((StringValue) column).getNotExcapedValue();
+		else
+			return column.toString();
+	}
+
 	/**
 	 * Check if tuple is an empty record
 	 * @return true if empty, false if not
@@ -109,4 +122,5 @@ public class Tuple {
 		else 
 			return false;
 	}
+
 }

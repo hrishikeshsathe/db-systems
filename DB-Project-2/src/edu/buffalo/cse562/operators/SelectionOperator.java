@@ -40,7 +40,7 @@ public class SelectionOperator implements Operator {
 
 		if(tuple == null)
 			return null;
-		else{
+		else if(!tuple.isEmptyRecord()){
 			Evaluator evaluator = new Evaluator(tableSchema, tuple, isHaving);
 			try{
 				BooleanValue bool = (BooleanValue) evaluator.eval(condition);
@@ -49,8 +49,8 @@ public class SelectionOperator implements Operator {
 			}catch(SQLException e){
 				System.out.println("Exception occured in SelectionOperator.readOneTuple()");
 			}
-			return tuple;
 		}//end of else
+		return tuple;
 	}//end of readOneTuple
 
 	@Override

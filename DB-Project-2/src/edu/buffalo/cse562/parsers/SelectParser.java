@@ -66,9 +66,8 @@ public class SelectParser {
 		}//end subQuery if
 		else{
 			table = (Table) body.getFromItem();
-			if(table.getAlias() == null){
-				table.setAlias(table.getName());
-			}
+			table.setName(table.getName().toUpperCase());
+			Utility.checkAndSetTableAlias(table);
 			allCol = isAllColumns(body);
 			String tableFile = Utility.dataDir.toString() + File.separator + table.getName() + ".dat";
 			Operator readOperator = new ReadOperator(new File(tableFile), table);

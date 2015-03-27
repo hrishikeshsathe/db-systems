@@ -165,7 +165,7 @@ public class GroupByOperator implements Operator {
 			Entry<String, Tuple> e=it.next();
 			for(int i=0;i<projectItems.size();i++)
 			{
-				if(projectItems.get(i).getExpression().toString().contains("AVG"))
+				if(projectItems.get(i).getExpression().toString().contains("AVG") || projectItems.get(i).getExpression().toString().contains("avg") )
 				{
 					String groupByKey=(String) e.getKey();
 					Integer count=groupedTupleCount.get(groupByKey);
@@ -214,7 +214,7 @@ public class GroupByOperator implements Operator {
 				value.append(",");
 			}
 		} catch (SQLException e) {
-			System.out.println("SQLException in getColumnValue() - GroupByOperator");
+			System.out.println("SQLException in getColumnValueForDistinct() - GroupByOperator");
 		}
 		return value.toString();
 	}

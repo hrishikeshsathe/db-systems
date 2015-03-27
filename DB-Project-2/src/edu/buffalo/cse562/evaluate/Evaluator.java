@@ -3,6 +3,8 @@ package edu.buffalo.cse562.evaluate;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import net.sf.jsqlparser.expression.DateValue;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LeafValue;
 import net.sf.jsqlparser.schema.Column;
@@ -53,13 +55,14 @@ public class Evaluator extends Eval{
 			return tuple.get(schema.get(c.getColumnName()));
 		}
 		//if schema contains whole column name - R.A
-		else if(schema.containsKey(c.getWholeColumnName())){
-			return tuple.get(schema.get(c.getWholeColumnName()));
+		else if(schema.containsKey(c.getTable().getName().toUpperCase() + "." + c.getColumnName())){
+			return tuple.get(schema.get(c.getTable().getName().toUpperCase() + "." + c.getColumnName()));
 		}
 		//Search after split on '.'
 		else {
 			for(String column: schema.keySet()){
-				if(c.getColumnName().equals(column.split("\\.")[1])){
+				String[] splitColumns = column.split("\\.");
+				if(c.getColumnName().equals(splitColumns[splitColumns.length - 1])){
 					return tuple.get(schema.get(column));
 				}
 			}
@@ -76,19 +79,22 @@ public class Evaluator extends Eval{
 		if(isHaving){
 			return eval(new Column(null, function.toString()));
 		}
+		else if(function.getName().contains("DATE") || function.getName().contains("date")){
+			return new DateValue(function.getParameters().getExpressions().get(0).toString());
+		}
 		else{
-			if(function.getName().contains("COUNT"))
+			if(function.getName().contains("COUNT") || function.getName().contains("count"))
 				return AggregateFunctions.getCount(column);
 			
-			LeafValue functionParameter = eval((Column) function.getParameters().getExpressions().get(0));
+			LeafValue functionParameter = eval((Expression) function.getParameters().getExpressions().get(0));
 
-			if(function.getName().contains("SUM") || function.getName().contains("AVG"))
+			if(function.getName().contains("SUM") || function.getName().contains("AVG") || function.getName().contains("sum") || function.getName().contains("avg"))
 				return AggregateFunctions.calculateSum(functionParameter, column);
 			
-			else if(function.getName().contains("MIN"))
+			else if(function.getName().contains("MIN") || function.getName().contains("min"))
 				return AggregateFunctions.getMinimum(functionParameter, column);
 			
-			else if(function.getName().contains("MAX"))
+			else if(function.getName().contains("MAX") || function.getName().contains("max"))
 				return AggregateFunctions.getMaximum(functionParameter, column);
 		}
 		return null;
