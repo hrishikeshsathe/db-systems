@@ -19,6 +19,7 @@ public class ProjectOperator implements Operator {
 	HashMap<String, Integer> tableSchema;
 	boolean allColumns;
 	boolean isGroupBy;
+	HashMap<String, Integer> projectSchema;
 	
 	public ProjectOperator(Operator operator, Table table,
 			ArrayList<SelectExpressionItem> projectItems, boolean allCol, boolean isGroupBy) {
@@ -28,6 +29,18 @@ public class ProjectOperator implements Operator {
 		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
 		this.allColumns = allCol;
 		this.isGroupBy = isGroupBy;
+		projectSchema = new HashMap<String, Integer>();
+		createProjectSchema();
+	}
+
+	private void createProjectSchema() {
+		for(int i = 0; i < toProject.size(); i++){
+			if(toProject.get(i).getAlias() == null){
+				projectSchema.put(toProject.get(i).getExpression().toString(), i);
+			}else
+				projectSchema.put(toProject.get(i).getAlias().toString(), i);
+			
+		}
 	}
 
 	@Override
@@ -62,5 +75,9 @@ public class ProjectOperator implements Operator {
 	@Override
 	public Table getTable() {
 		return table;
+	}
+	
+	public HashMap<String, Integer> getProjectSchema(){
+		return projectSchema;
 	}
 }

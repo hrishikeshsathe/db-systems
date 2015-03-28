@@ -115,7 +115,7 @@ public class OperatorTest {
 			operator = new ProjectOperator(operator, table, projectItems, allCol, false);
 		
 		if(orderByColumns !=null){
-			operator = new OrderByOperator(operator, table, orderByColumns);
+			operator = new OrderByOperator(operator, ((ProjectOperator)operator).getProjectSchema(), table, orderByColumns);
 		}
 		return operator;
 	}

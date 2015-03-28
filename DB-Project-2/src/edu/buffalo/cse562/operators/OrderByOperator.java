@@ -1,16 +1,12 @@
 package edu.buffalo.cse562.operators;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import edu.buffalo.cse562.utility.Tuple;
-import edu.buffalo.cse562.utility.Utility;
 
 public class OrderByOperator implements Operator{
 
@@ -22,16 +18,15 @@ public class OrderByOperator implements Operator{
 	ArrayList<Tuple> allTuples;
 	List<OrderByElement> orderByColumns;
 	
-	public OrderByOperator(Operator operator, Table table, List<OrderByElement> orderByCols) {
+	public OrderByOperator(Operator operator, HashMap<String, Integer> schema, Table table, List<OrderByElement> orderByCols) {
 		this.operator = operator;
-		this.table = table;		
-		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
+		this.tableSchema = schema;
 		this.orderByColumns = orderByCols;
+		this.table = table;
 		generateTuple();
+		
 		index = -1;
-		
 //		allTuples = sortedTuples;
-		
 	}
 
 	
@@ -66,11 +61,19 @@ public class OrderByOperator implements Operator{
 		}
 		
 		ArrayList<Integer> indexes = new ArrayList<Integer>();
+		// order 1 indicates descending, order 0 indicates ascending
+		ArrayList<Integer> orders = new ArrayList<Integer>();
 		
 		for(OrderByElement e : orderByColumns){
-			indexes.add(tableSchema.get(e.toString()));
+			if(e.toString().contains(" DESC") || e.toString().contains(" desc")){
+				indexes.add(tableSchema.get(e.toString().replaceAll(" (?i)DESC", "")));
+				orders.add(1);
+			}else{
+				indexes.add(tableSchema.get(e.toString().split(" ")[0]));
+				orders.add(0);
+			}
 		}
-		Tuple.sortTupleList(sortedTuples, indexes, table.getAlias());		
+		Tuple.sortTupleList(sortedTuples, indexes, orders, table.getAlias());		
 	}
 
 }
