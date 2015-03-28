@@ -29,20 +29,28 @@ public class JoinOperator implements Operator{
 
 	public Tuple readOneTuple(){
 
-		if(leftTuple == null) //initial condition
+		if(leftTuple == null || leftTuple.isEmptyRecord()) //initial condition
 			leftTuple = leftOperator.readOneTuple();
 
 		if(leftTuple == null) //if leftTuple is null then reached end of file. Return null
 			return null;
+		if(leftTuple.isEmptyRecord())
+			return leftTuple;
 		else{
 			rightTuple = rightOperator.readOneTuple();
+			if( rightTuple!=null && rightTuple.isEmptyRecord())
+				return rightTuple;
+
 			if(rightTuple == null){
 				rightOperator.reset();
 				rightTuple = rightOperator.readOneTuple();
+				if(rightTuple.isEmptyRecord())
+					return rightTuple;
 				leftTuple = leftOperator.readOneTuple();
 				if(leftTuple == null)
 					return null;
 			}
+
 		}
 		return joinTuple(leftTuple, rightTuple);
 	}
@@ -63,25 +71,25 @@ public class JoinOperator implements Operator{
 		this.table = new Table();
 		this.table.setName(leftTable.getAlias() + " JOIN " + rightTable.getAlias());
 		this.table.setAlias(leftTable.getAlias() + " JOIN " + rightTable.getAlias());
-		
+
 		HashMap<String, Integer> newSchema = new HashMap<String, Integer>();
 		HashMap<String, Integer> leftTableSchema = Utility.tableSchemas.get(leftTable.getName());
 		HashMap<String, Integer> rightTableSchema = Utility.tableSchemas.get(rightTable.getName());
-		
+
 		for(String column: leftTableSchema.keySet()){
 			if(column.contains("."))
 				newSchema.put(column, leftTableSchema.get(column));
 			else
 				newSchema.put(leftTable.getAlias() + "." + column, leftTableSchema.get(column));
 		}
-		
+
 		for(String column: rightTableSchema.keySet()){
 			if(column.contains("."))
 				newSchema.put(column, rightTableSchema.get(column) + leftTableSchema.size());
 			else
 				newSchema.put(rightTable.getAlias() + "." + column, rightTableSchema.get(column) + leftTableSchema.size());
 		}
-		
+
 		Utility.tableSchemas.put(table.getName(), newSchema);
 	}
 }
