@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.Distinct;
 import net.sf.jsqlparser.statement.select.Join;
@@ -48,8 +49,11 @@ public class TreeCreator {
 				String fileName = Utility.dataDir.toString() + File.separator + rightTable.getName().toString() + ".dat";
 				Operator rightOperator = new ReadOperator(new File(fileName), rightTable);
 				Operator joinOperator = new JoinOperator(operator, rightOperator);
+		//		Operator hashJoinOperator =new HashJoinOperator(operator, rightOperator, ((EqualsTo)where).getLeftExpression(), ((EqualsTo)where).getRightExpression());
 				Utility.setParentAndChild(joinOperator, operator, rightOperator);
+		//		Utility.setParentAndChild(hashJoinOperator, operator, rightOperator);
 				operator = joinOperator;
+		//		operator = hashJoinOperator;
 				table = operator.getTable();
 			}//end of loop
 		}//end if

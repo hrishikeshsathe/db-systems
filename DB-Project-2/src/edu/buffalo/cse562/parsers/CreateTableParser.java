@@ -19,6 +19,7 @@ public class CreateTableParser {
 	 */
 	public static void parseStatement(Statement statement){
 		Table table = ((CreateTable) statement).getTable();
+		table.setName(table.getName().toUpperCase());
 		Utility.checkAndSetTableAlias(table);
 		Schema schema = new Schema(table);
 		HashMap<String, Integer> cols = new HashMap<String, Integer>();

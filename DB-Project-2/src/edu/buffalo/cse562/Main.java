@@ -20,6 +20,7 @@ public class Main {
 
 	public static void main(String args[]){
 		initialize(args);
+		resetAll();
 		for(File sql: Utility.sqlFiles){
 			FileReader fr = getFileReader(sql);
 			parseWithJsql(fr);			
@@ -59,7 +60,6 @@ public class Main {
 	 */
 	private static void parseWithJsql(FileReader inputFile) {
 		try{
-			resetAll();
 			CCJSqlParser parser = new CCJSqlParser(inputFile);
 			Statement statement = null;
 			while((statement  = parser.Statement()) != null){

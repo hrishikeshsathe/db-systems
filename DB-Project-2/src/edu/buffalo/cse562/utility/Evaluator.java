@@ -82,7 +82,7 @@ public class Evaluator extends Eval{
 		if(isHaving){
 			return eval(new Column(null, function.toString()));
 		}
-		else if(function.getName().contains("DATE") || function.getName().contains("date")){
+		else if(function.getName().contains("DATE") || function.getName().contains("date") || function.getName().contains("Date")){
 			return new DateValue(function.getParameters().getExpressions().get(0).toString());
 		}
 		else{
