@@ -7,53 +7,63 @@ import java.util.HashMap;
 import net.sf.jsqlparser.expression.LeafValue;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
-import edu.buffalo.cse562.evaluate.Evaluator;
+import edu.buffalo.cse562.utility.Evaluator;
+import edu.buffalo.cse562.utility.Schema;
 import edu.buffalo.cse562.utility.Tuple;
 import edu.buffalo.cse562.utility.Utility;
 
 public class ProjectOperator implements Operator {
 
-	Operator operator;
-	ArrayList<SelectExpressionItem> toProject;
+	Operator leftChild;
+	Operator parent;
+	ArrayList<SelectExpressionItem> projectItems;
 	Table table;
-	HashMap<String, Integer> tableSchema;
+	Schema schema;
 	boolean allColumns;
 	boolean isGroupBy;
-	HashMap<String, Integer> projectSchema;
-	
+	Schema newSchema;
+
+
 	public ProjectOperator(Operator operator, Table table,
-			ArrayList<SelectExpressionItem> projectItems, boolean allCol, boolean isGroupBy) {
-		this.operator = operator;
-		this.toProject = projectItems;
+			ArrayList<SelectExpressionItem> projectItems, Boolean allCol,
+			boolean isGroupBy) {
+
+		this.leftChild = operator;
+		this.projectItems = projectItems;
 		this.table = table;
-		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
+		this.schema = Utility.tableSchemas.get(table.getAlias());
 		this.allColumns = allCol;
 		this.isGroupBy = isGroupBy;
-		projectSchema = new HashMap<String, Integer>();
 		createProjectSchema();
+
 	}
 
 	private void createProjectSchema() {
-		for(int i = 0; i < toProject.size(); i++){
-			if(toProject.get(i).getAlias() == null){
-				projectSchema.put(toProject.get(i).getExpression().toString(), i);
-			}else
-				projectSchema.put(toProject.get(i).getAlias().toString(), i);
-			
+		if(!allColumns){
+			newSchema = new Schema(table);
+			HashMap<String, Integer> temp = new HashMap<String, Integer>();
+			for(int projectItemIndex = 0; projectItemIndex < projectItems.size(); projectItemIndex++){
+				if(projectItems.get(projectItemIndex).getAlias() == null)
+					temp.put(projectItems.get(projectItemIndex).getExpression().toString(), projectItemIndex);
+				else
+					temp.put(projectItems.get(projectItemIndex).getAlias(), projectItemIndex);
+			}
+			newSchema.setColumns(temp);
+			Utility.tableSchemas.put(table.getAlias(), newSchema);
 		}
 	}
 
 	@Override
 	public void reset() {
-		operator.reset();
+		leftChild.reset();
 	}
 
 	@Override
 	public Tuple readOneTuple() {
-		Tuple tempTuple = operator.readOneTuple();
+		Tuple tempTuple = leftChild.readOneTuple();
 		ArrayList<LeafValue> tuple = new ArrayList<LeafValue>();
-		Evaluator evaluator = new Evaluator(tableSchema, tempTuple, false);
-		
+		Evaluator evaluator = new Evaluator(schema, tempTuple, false);
+
 		if(tempTuple == null)
 			return null;
 		else if(allColumns || isGroupBy)
@@ -61,7 +71,7 @@ public class ProjectOperator implements Operator {
 		else if(tempTuple.isEmptyRecord())
 			return tempTuple;
 		else{
-			for(SelectExpressionItem exp: toProject){
+			for(SelectExpressionItem exp: projectItems){
 				try {
 					tuple.add(evaluator.eval(exp.getExpression()));
 				} catch (SQLException e) {
@@ -69,15 +79,41 @@ public class ProjectOperator implements Operator {
 				}//end of catch
 			}//end for
 		}//end else
-		return new Tuple(tuple);
-	}
+		return new Tuple(tuple);	}
 
 	@Override
 	public Table getTable() {
 		return table;
 	}
-	
-	public HashMap<String, Integer> getProjectSchema(){
-		return projectSchema;
+
+	@Override
+	public Operator getLeftChild() {
+		return this.leftChild;
 	}
+
+	@Override
+	public Operator getRightChild() {
+		return null;
+	}
+
+	@Override
+	public Operator getParent() {
+		return this.parent;
+	}
+
+	@Override
+	public void setLeftChild(Operator leftChild) {
+		this.leftChild = leftChild;
+	}
+
+	@Override
+	public void setRightChild(Operator rightChild) {
+		//do nothing
+	}
+
+	@Override
+	public void setParent(Operator parent) {
+		this.parent = parent;
+	}
+
 }

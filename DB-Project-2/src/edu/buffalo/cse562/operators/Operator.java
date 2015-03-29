@@ -9,5 +9,11 @@ public interface Operator {
 	public void reset();
 	public Tuple readOneTuple();
 	public Table getTable();
+	public Operator getLeftChild();
+	public Operator getRightChild();
+	public Operator getParent();
+	public void setLeftChild(Operator leftChild);
+	public void setRightChild(Operator rightChild);
+	public void setParent(Operator parent);
 	
 }

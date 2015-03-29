@@ -9,14 +9,17 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectBody;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import edu.buffalo.cse562.operators.Operator;
-import edu.buffalo.cse562.operators.OperatorTest;
 import edu.buffalo.cse562.operators.ReadOperator;
+import edu.buffalo.cse562.operators.TreeCreator;
+import edu.buffalo.cse562.utility.Printer;
+import edu.buffalo.cse562.utility.Schema;
 import edu.buffalo.cse562.utility.Utility;
 
 public class SelectParser {
@@ -29,8 +32,8 @@ public class SelectParser {
 		SelectBody body = ((Select) statement).getSelectBody();
 
 		if(body instanceof PlainSelect){
-			Operator operator = getOperator((PlainSelect) body);
-			OperatorTest.dump(operator,((PlainSelect) body).getLimit());
+			Operator rootOperator = getOperator((PlainSelect) body);
+			Printer.print(rootOperator, ((PlainSelect) body).getLimit());
 		}//end if
 	}//end parseStatement
 
@@ -48,7 +51,6 @@ public class SelectParser {
 		//if there is a subQuery
 		if(body.getFromItem() instanceof SubSelect){
 			table = new Table();
-
 			if(body.getFromItem().getAlias() == null){
 				table.setName("SubQuery" + Utility.subQueryCounter);
 				table.setAlias("SubQuery" + Utility.subQueryCounter);
@@ -69,13 +71,12 @@ public class SelectParser {
 			table.setName(table.getName().toUpperCase());
 			Utility.checkAndSetTableAlias(table);
 			allCol = isAllColumns(body);
-			String tableFile = Utility.dataDir.toString() + File.separator + table.getName() + ".dat";
-			Operator readOperator = new ReadOperator(new File(tableFile), table);
+			String fileName = Utility.dataDir.toString() + File.separator + table.getName() + ".dat";
+			Operator readOperator = new ReadOperator(new File(fileName), table);
 			operator = generateOperator(readOperator, table, body, allCol);
 			return operator;
 		}//end else
 	}//end getOperator
-
 
 
 	@SuppressWarnings("unchecked")
@@ -101,15 +102,17 @@ public class SelectParser {
 	public static void createSchema(Table table,
 			ArrayList<SelectExpressionItem> selectItems) {
 
-		HashMap<String, Integer> schema = new HashMap<String, Integer>();
-		for(int i=0; i<selectItems.size(); i++)
+		Schema schema = new Schema(table);
+		HashMap<String, Integer> cols = new HashMap<String, Integer>();
+		for(int colIndex = 0; colIndex < selectItems.size(); colIndex++)
 		{
 			// Put alias if it is present else put actual expression
-			if(selectItems.get(i).getAlias()!=null)
-				schema.put(selectItems.get(i).getAlias(), i);
+			if(selectItems.get(colIndex).getAlias()!=null)
+				cols.put(selectItems.get(colIndex).getAlias(), colIndex);
 			else
-				schema.put(selectItems.get(i).getExpression().toString(), i);
+				cols.put(selectItems.get(colIndex).getExpression().toString(), colIndex);
 		}
+		schema.setColumns(cols);
 		//Add new schema to the list of schemas
 		//if alias is present then with alias name else with actual name
 		if(table.getAlias()!=null)
@@ -129,7 +132,7 @@ public class SelectParser {
 	 */
 	private static Operator generateOperator(Operator readOperator, Table table, PlainSelect body, Boolean allCol){
 		@SuppressWarnings("unchecked")
-		Operator operator = OperatorTest.executeSelect(readOperator,
+		Operator operator = TreeCreator.createTree(readOperator,
 				table,
 				body.getWhere(),
 				(ArrayList<SelectExpressionItem>) body.getSelectItems(),
@@ -139,7 +142,7 @@ public class SelectParser {
 				allCol,
 				body.getLimit(),
 				body.getDistinct(),
-				body.getOrderByElements());
+				(ArrayList<OrderByElement>)body.getOrderByElements());
 		return operator;
 	}
 

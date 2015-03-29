@@ -1,61 +1,92 @@
 package edu.buffalo.cse562.operators;
 
 import java.sql.SQLException;
-import java.util.HashMap;
 
 import net.sf.jsqlparser.expression.BooleanValue;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Table;
-import edu.buffalo.cse562.evaluate.Evaluator;
+import edu.buffalo.cse562.utility.Evaluator;
+import edu.buffalo.cse562.utility.Schema;
 import edu.buffalo.cse562.utility.Tuple;
 import edu.buffalo.cse562.utility.Utility;
 
 public class SelectionOperator implements Operator {
-
-	Operator operator;
-	HashMap<String, Integer> tableSchema;
-	Expression condition;
+	
+	private Operator leftChild;
+	private Operator parent;
+	Schema schema;
+	Expression where;
 	Table table;
 	boolean isHaving;
-
-	public SelectionOperator(Operator operator, Table table,
-			Expression condition, boolean isHaving) {
+	
+	public SelectionOperator(Operator operator, Table table, Expression where,
+			boolean isHaving) {
+		this.leftChild = operator;
 		this.table = table;
-		this.operator = operator;
-		this.condition = condition;
-		this.tableSchema = Utility.tableSchemas.get(table.getAlias());
+		this.where = where;
+		this.schema = Utility.tableSchemas.get(table.getAlias());
 		this.isHaving = isHaving;
 	}
 
-	
 	@Override
 	public void reset() {
-		operator.reset();
+		leftChild.reset();
 	}
 
 	@Override
 	public Tuple readOneTuple() {
 		Tuple tuple = null;
-		tuple = operator.readOneTuple();
-
+		tuple = leftChild.readOneTuple();
+		boolean tupleSatisfiesCondition;
+		
 		if(tuple == null)
 			return null;
 		else if(!tuple.isEmptyRecord()){
-			Evaluator evaluator = new Evaluator(tableSchema, tuple, isHaving);
+			Evaluator evaluator = new Evaluator(schema, tuple, isHaving);
 			try{
-				BooleanValue bool = (BooleanValue) evaluator.eval(condition);
-				if(!bool.getValue())
+				tupleSatisfiesCondition = ((BooleanValue)evaluator.eval(where)).getValue();
+				if(!tupleSatisfiesCondition)
 					tuple = Utility.noResult;
 			}catch(SQLException e){
 				System.out.println("Exception occured in SelectionOperator.readOneTuple()");
 			}
-		}//end of else
+		}//end else
 		return tuple;
 	}//end of readOneTuple
 
 	@Override
 	public Table getTable() {
 		return table;
+	}
+
+	@Override
+	public Operator getLeftChild() {
+		return this.leftChild;
+	}
+
+	@Override
+	public Operator getRightChild() {
+		return null;
+	}
+
+	@Override
+	public Operator getParent() {
+		return this.parent;
+	}
+
+	@Override
+	public void setLeftChild(Operator leftChild) {
+		this.leftChild = leftChild;
+	}
+
+	@Override
+	public void setRightChild(Operator rightChild) {
+		//do nothing
+	}
+
+	@Override
+	public void setParent(Operator parent) {
+		this.parent = parent;
 	}
 
 }

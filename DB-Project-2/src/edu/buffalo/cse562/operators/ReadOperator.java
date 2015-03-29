@@ -4,53 +4,46 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+
 import net.sf.jsqlparser.schema.Table;
 import edu.buffalo.cse562.utility.Tuple;
 
-
 public class ReadOperator implements Operator {
-
-	File file = null;
+	
+	File tableData = null;
 	BufferedReader br = null;
-	Table table;
-
-	public ReadOperator(File f, Table table){
-		this.file = f;
+	Table table = null;
+	Operator parent = null;
+	
+	public ReadOperator(File file, Table table) {
+		this.tableData = file;
 		this.table = table;
 		reset();
 	}
 
 	@Override
 	public void reset() {
-		// TODO Auto-generated method stub
 		try{
-			br = new BufferedReader(new FileReader(file));
-		}
-		catch(IOException e){
-			System.out.println("IO Exception in ReadOperator.reset()");
+			br = new BufferedReader(new FileReader(tableData));
+		}catch(IOException ex){
+			System.out.println("IOException in ReadOperator.reset()");
 			System.exit(0);
 		}
 	}
 
 	@Override
-	/**Read One tuple at a time from the File.
-	 * @return Tuple array for the row. 
-	 */
 	public Tuple readOneTuple() {
 		
 		if(br == null)
 			return null;
-		
-		String line = "";
+		String line = new String("");
 		Tuple tuple = null;
-		
 		try{
-			line=br.readLine();
+			line = br.readLine();
 			if(line == null)
 				return null;
-			String[] cols = line.split("\\|");
-			tuple = new Tuple(cols, table.getName());
-		}catch(IOException e){
+			tuple = new Tuple(line.split("\\|"), table.getName());
+		}catch(IOException ex){
 			System.out.println("IOException in ReadOperator.readOneTuple()");
 			System.exit(0);
 		}
@@ -60,6 +53,36 @@ public class ReadOperator implements Operator {
 	@Override
 	public Table getTable() {
 		return table;
+	}
+
+	@Override
+	public Operator getLeftChild() {
+		return null;
+	}
+
+	@Override
+	public Operator getRightChild() {
+		return null;
+	}
+
+	@Override
+	public Operator getParent() {
+		return this.parent;
+	}
+
+	@Override
+	public void setLeftChild(Operator leftChild) {
+		
+	}
+
+	@Override
+	public void setRightChild(Operator rightChild) {
+
+	}
+
+	@Override
+	public void setParent(Operator parent) {
+		this.parent = parent;
 	}
 
 }

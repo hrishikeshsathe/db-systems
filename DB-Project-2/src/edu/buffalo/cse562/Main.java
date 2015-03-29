@@ -14,12 +14,12 @@ import net.sf.jsqlparser.statement.select.Select;
 import edu.buffalo.cse562.parsers.CreateTableParser;
 import edu.buffalo.cse562.parsers.SelectParser;
 import edu.buffalo.cse562.utility.Utility;
+import edu.buffalo.cse562.utility.Schema;
 
 public class Main {
 
 	public static void main(String args[]){
 		initialize(args);
-		Utility.tableSchemas = new HashMap<String, HashMap<String, Integer>>();
 		for(File sql: Utility.sqlFiles){
 			FileReader fr = getFileReader(sql);
 			parseWithJsql(fr);			
@@ -31,20 +31,26 @@ public class Main {
 	 * @param args - the arguments that are passed to the program.
 	 */
 	private static void initialize(String args[]) {
-		Utility.tableDataTypes = new HashMap<String, ArrayList<String>>();
+		int argIndex;
 		Utility.dataDir = new File(args[1]);
+		if(args[2].equals("--swap")){
+			Utility.swapDir = new File(args[3]);
+			argIndex = 4;
+		}
+		else
+			argIndex = 2;
 		Utility.sqlFiles = new ArrayList<File>();
 		
-		for(int i = 2; i < args.length; i++){ 
+		for(;argIndex < args.length; argIndex++){ 
 			try{
-				File sql = new File(args[i]);
+				File sql = new File(args[argIndex]);
 				Utility.sqlFiles.add(sql);
 			}
 			catch(NullPointerException e){
 				System.out.println("Null pointer exception encountered in initialize()");
 			}
 		}//end for
-	}
+	}//end of initialize
 
 	/**
 	 * Takes a FileReader object and parses it using JsqlParser
@@ -53,6 +59,7 @@ public class Main {
 	 */
 	private static void parseWithJsql(FileReader inputFile) {
 		try{
+			resetAll();
 			CCJSqlParser parser = new CCJSqlParser(inputFile);
 			Statement statement = null;
 			while((statement  = parser.Statement()) != null){
@@ -83,6 +90,13 @@ public class Main {
 			System.exit(0);
 		}
 		return inputFile;
+	}
+	
+	private static void resetAll(){
+		Utility.tableSchemas = new HashMap<String, Schema>();
+		Utility.tableDataTypes = new HashMap<String, ArrayList<String>>();
+		Utility.subQueryCounter = 0;
+		Utility.grpByCounter = 0;
 	}
 }
 

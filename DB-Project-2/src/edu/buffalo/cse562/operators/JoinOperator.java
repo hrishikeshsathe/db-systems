@@ -5,56 +5,65 @@ import java.util.HashMap;
 
 import net.sf.jsqlparser.expression.LeafValue;
 import net.sf.jsqlparser.schema.Table;
+import edu.buffalo.cse562.utility.Schema;
 import edu.buffalo.cse562.utility.Tuple;
 import edu.buffalo.cse562.utility.Utility;
 
-public class JoinOperator implements Operator{
+public class JoinOperator implements Operator {
 
-	Operator leftOperator;
-	Operator rightOperator;
+	private Operator leftChild;
+	private Operator rightChild;
+	private Operator parent;
 	Table table;
 	Tuple leftTuple;
 	Tuple rightTuple;
 
-	public JoinOperator(Operator leftOperator, Operator rightOperator){
-		this.leftOperator = leftOperator;
-		this.rightOperator = rightOperator;
+	public JoinOperator(Operator leftOperator, Operator rightOperator) {
+		this.leftChild = leftOperator;
+		this.rightChild = rightOperator;
 		createNewJoinSchema(leftOperator.getTable(), rightOperator.getTable());
 	}
 
-	public void reset(){
-		leftOperator.reset();
-		rightOperator.reset();
+	@Override
+	public void reset() {
+		leftChild.reset();
+		rightChild.reset();
 	}
 
-	public Tuple readOneTuple(){
+	@Override
+	public Tuple readOneTuple() {
 
 		if(leftTuple == null || leftTuple.isEmptyRecord()) //initial condition
-			leftTuple = leftOperator.readOneTuple();
-
+			leftTuple = leftChild.readOneTuple();
 		if(leftTuple == null) //if leftTuple is null then reached end of file. Return null
 			return null;
 		if(leftTuple.isEmptyRecord())
 			return leftTuple;
 		else{
-			rightTuple = rightOperator.readOneTuple();
-			if( rightTuple!=null && rightTuple.isEmptyRecord())
+			rightTuple = rightChild.readOneTuple();
+			if(rightTuple != null && rightTuple.isEmptyRecord())
 				return rightTuple;
-
 			if(rightTuple == null){
-				rightOperator.reset();
-				rightTuple = rightOperator.readOneTuple();
+				rightChild.reset();
+				rightTuple = rightChild.readOneTuple();
 				if(rightTuple.isEmptyRecord())
 					return rightTuple;
-				leftTuple = leftOperator.readOneTuple();
+				leftTuple = leftChild.readOneTuple();
 				if(leftTuple == null)
 					return null;
+				if(leftTuple.isEmptyRecord())
+					return leftTuple;
 			}
-
 		}
-		return joinTuple(leftTuple, rightTuple);
+		return joinTuple(leftTuple, rightTuple);	
 	}
 
+	/**
+	 * Take two tuples and join them and return the new tuple
+	 * @param leftTuple
+	 * @param rightTuple
+	 * @return
+	 */
 	private Tuple joinTuple(Tuple leftTuple, Tuple rightTuple) {
 
 		ArrayList<LeafValue> newTuple = new ArrayList<LeafValue>();
@@ -63,18 +72,49 @@ public class JoinOperator implements Operator{
 		return new Tuple(newTuple);
 	}
 
-	public Table getTable(){
+	@Override
+	public Table getTable() {
 		return this.table;
+	}
+
+	@Override
+	public Operator getLeftChild() {
+		return this.leftChild;
+	}
+
+	@Override
+	public Operator getRightChild() {
+		return this.rightChild;
+	}
+
+	@Override
+	public Operator getParent() {
+		return this.parent;
+	}
+
+	@Override
+	public void setLeftChild(Operator leftChild) {
+		this.leftChild = leftChild;
+	}
+
+	@Override
+	public void setRightChild(Operator rightChild) {
+		this.rightChild = rightChild;
+	}
+
+	@Override
+	public void setParent(Operator parent) {
+		this.parent = parent;
 	}
 
 	private void createNewJoinSchema(Table leftTable, Table rightTable) {
 		this.table = new Table();
 		this.table.setName(leftTable.getAlias() + " JOIN " + rightTable.getAlias());
 		this.table.setAlias(leftTable.getAlias() + " JOIN " + rightTable.getAlias());
-
+		Schema schema = new Schema(table);
 		HashMap<String, Integer> newSchema = new HashMap<String, Integer>();
-		HashMap<String, Integer> leftTableSchema = Utility.tableSchemas.get(leftTable.getName());
-		HashMap<String, Integer> rightTableSchema = Utility.tableSchemas.get(rightTable.getName());
+		HashMap<String, Integer> leftTableSchema = Utility.tableSchemas.get(leftTable.getName()).getColumns();
+		HashMap<String, Integer> rightTableSchema = Utility.tableSchemas.get(rightTable.getName()).getColumns();
 
 		for(String column: leftTableSchema.keySet()){
 			if(column.contains("."))
@@ -89,7 +129,7 @@ public class JoinOperator implements Operator{
 			else
 				newSchema.put(rightTable.getAlias() + "." + column, rightTableSchema.get(column) + leftTableSchema.size());
 		}
-
-		Utility.tableSchemas.put(table.getName(), newSchema);
+		schema.setColumns(newSchema);
+		Utility.tableSchemas.put(table.getName(), schema);
 	}
 }
