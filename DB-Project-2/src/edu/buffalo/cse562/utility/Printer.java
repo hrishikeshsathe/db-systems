@@ -12,7 +12,6 @@ public class Printer {
 			long lim=limit.getRowCount();
 			int counter=0;
 			while(tuple != null && counter<lim){
-				if(!tuple.isEmptyRecord())
 					System.out.println(tuple.toString());
 				counter++;
 				tuple = op.readOneTuple();
@@ -21,7 +20,6 @@ public class Printer {
 		else
 		{
 			while(tuple != null){
-				if(!tuple.isEmptyRecord())
 					System.out.println(tuple.toString());
 				tuple = op.readOneTuple();
 			}

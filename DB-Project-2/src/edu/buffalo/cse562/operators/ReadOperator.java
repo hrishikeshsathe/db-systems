@@ -25,6 +25,8 @@ public class ReadOperator implements Operator {
 	@Override
 	public void reset() {
 		try{
+			if(br != null)
+				br.close();
 			br = new BufferedReader(new FileReader(tableData));
 		}catch(IOException ex){
 			System.out.println("IOException in ReadOperator.reset()");

@@ -111,17 +111,6 @@ public class Tuple implements Comparable<Tuple>{
 			return column.toString();
 	}
 
-	/**
-	 * Check if tuple is an empty record
-	 * @return true if empty, false if not
-	 */
-	public boolean isEmptyRecord(){
-		if(oneTuple.get(0).toString().equals(StringUtility.NORESULT2))
-			return true;
-		else 
-			return false;
-	}
-
 	
 	@Override
 	public int compareTo(Tuple t2) {

@@ -30,7 +30,7 @@ public class HashJoinOperator implements Operator{
 
 	public HashJoinOperator(Operator leftOperator,
 			Operator rightOperator,Expression leftColumn, Expression rightColumn) {
-		
+
 		this.leftChild = leftOperator;
 		this.rightChild = rightOperator;
 		this.leftColumn = leftColumn;
@@ -49,29 +49,27 @@ public class HashJoinOperator implements Operator{
 
 		while(leftTuple != null)
 		{
-			if(!leftTuple.isEmptyRecord()){
-				Evaluator evaluator = new Evaluator(leftTableSchema, leftTuple, false);
-				try{
-					LeafValue columnValue = (LeafValue) evaluator.eval(leftColumn);
-					key = columnValue.toString();
-					ArrayList<Tuple> tuples;
-					if(!hashIndex.containsKey(key))
-					{
-						tuples = new ArrayList<Tuple>();
-						tuples.add(leftTuple);
-						hashIndex.put(columnValue.toString(), tuples);
-					}
-					else
-					{
-						tuples = hashIndex.get(key);
-						tuples.add(leftTuple);
-						hashIndex.put(key, tuples);
-					}
-				}catch(SQLException e){
-					System.out.println("Exception occured in HashJoinOperator.readOneTuple()");
+			Evaluator evaluator = new Evaluator(leftTableSchema, leftTuple, false);
+			try{
+				LeafValue columnValue = (LeafValue) evaluator.eval(leftColumn);
+				key = columnValue.toString();
+				ArrayList<Tuple> tuples;
+				if(!hashIndex.containsKey(key))
+				{
+					tuples = new ArrayList<Tuple>();
+					tuples.add(leftTuple);
+					hashIndex.put(columnValue.toString(), tuples);
 				}
-				leftTuple = leftChild.readOneTuple();
+				else
+				{
+					tuples = hashIndex.get(key);
+					tuples.add(leftTuple);
+					hashIndex.put(key, tuples);
+				}
+			}catch(SQLException e){
+				System.out.println("Exception occured in HashJoinOperator.readOneTuple()");
 			}
+			leftTuple = leftChild.readOneTuple();
 		}//end of else
 
 	}
@@ -149,12 +147,12 @@ public class HashJoinOperator implements Operator{
 			else
 				columns.put(rightTable.getAlias() + StringUtility.DOT + column, rightTableSchema.getColumns().get(column) + leftTableSchema.getColumns().size());
 		}
-		
+
 		newSchema.setColumns(columns);
 		Utility.tableSchemas.put(table.getName(), newSchema);
 	}
-	
-	
+
+
 	@Override
 	public Operator getLeftChild() {
 		return this.leftChild;

@@ -68,8 +68,6 @@ public class ProjectOperator implements Operator {
 			return null;
 		else if(allColumns || isGroupBy)
 			return tempTuple;
-		else if(tempTuple.isEmptyRecord())
-			return tempTuple;
 		else{
 			for(SelectExpressionItem exp: projectItems){
 				try {

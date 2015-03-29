@@ -80,7 +80,6 @@ public class GroupByOperator implements Operator {
 		tuple = leftChild.readOneTuple();
 
 		while(tuple != null){
-			if(!tuple.isEmptyRecord()){
 				if(groupByColumns != null){
 					columnEvaluator = new Evaluator(schema, tuple, false);
 					keyGroupByColumns = getColumnValue(columnEvaluator, groupByColumns);
@@ -129,7 +128,6 @@ public class GroupByOperator implements Operator {
 						System.out.println("SQLException in generateTuple() - GroupByOperator");
 					}//end catch
 				}//end for
-			}
 			tuple = leftChild.readOneTuple();
 		}//end while
 

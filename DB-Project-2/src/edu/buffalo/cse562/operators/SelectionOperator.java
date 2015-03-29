@@ -41,16 +41,18 @@ public class SelectionOperator implements Operator {
 		
 		if(tuple == null)
 			return null;
-		else if(!tuple.isEmptyRecord()){
+		while(tuple != null){
 			Evaluator evaluator = new Evaluator(schema, tuple, isHaving);
 			try{
 				tupleSatisfiesCondition = ((BooleanValue)evaluator.eval(where)).getValue();
-				if(!tupleSatisfiesCondition)
-					tuple = Utility.noResult;
+				if(tupleSatisfiesCondition)
+					return tuple;
+				else
+					tuple = leftChild.readOneTuple();
 			}catch(SQLException e){
 				System.out.println("Exception occured in SelectionOperator.readOneTuple()");
 			}
-		}//end else
+		}//end while
 		return tuple;
 	}//end of readOneTuple
 

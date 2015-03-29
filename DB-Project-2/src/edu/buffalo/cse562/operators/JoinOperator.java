@@ -34,26 +34,18 @@ public class JoinOperator implements Operator {
 	@Override
 	public Tuple readOneTuple() {
 
-		if(leftTuple == null || leftTuple.isEmptyRecord()) //initial condition
+		if(leftTuple == null) //initial condition
 			leftTuple = leftChild.readOneTuple();
 		if(leftTuple == null) //if leftTuple is null then reached end of file. Return null
 			return null;
-		if(leftTuple.isEmptyRecord())
-			return leftTuple;
 		else{
 			rightTuple = rightChild.readOneTuple();
-			if(rightTuple != null && rightTuple.isEmptyRecord())
-				return rightTuple;
 			if(rightTuple == null){
 				rightChild.reset();
 				rightTuple = rightChild.readOneTuple();
-				if(rightTuple.isEmptyRecord())
-					return rightTuple;
 				leftTuple = leftChild.readOneTuple();
 				if(leftTuple == null)
 					return null;
-				if(leftTuple.isEmptyRecord())
-					return leftTuple;
 			}
 		}
 		return joinTuple(leftTuple, rightTuple);	
