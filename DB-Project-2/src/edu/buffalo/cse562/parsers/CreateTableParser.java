@@ -9,6 +9,7 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import edu.buffalo.cse562.utility.Schema;
+import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Utility;
 
 public class CreateTableParser {
@@ -26,7 +27,7 @@ public class CreateTableParser {
 		ArrayList<String> dataType = new ArrayList<String>();
 		
 		if(Utility.tableSchemas != null){
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings(StringUtility.UNCHECKED)
 			List<ColumnDefinition> list = ((CreateTable)statement).getColumnDefinitions();
 			for(int colIndex = 0; colIndex < list.size(); colIndex++){
 				cols.put(list.get(colIndex).getColumnName(), colIndex);

@@ -15,6 +15,7 @@ import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import edu.buffalo.cse562.parsers.SelectParser;
 import edu.buffalo.cse562.utility.Evaluator;
 import edu.buffalo.cse562.utility.Schema;
+import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Tuple;
 import edu.buffalo.cse562.utility.Utility;
 
@@ -138,7 +139,7 @@ public class GroupByOperator implements Operator {
 			Entry<String, Tuple> e=it.next();
 			for(int i=0;i<projectItems.size();i++)
 			{
-				if(projectItems.get(i).getExpression().toString().contains("AVG") || projectItems.get(i).getExpression().toString().contains("avg") )
+				if(projectItems.get(i).getExpression().toString().contains(StringUtility.AVG1) || projectItems.get(i).getExpression().toString().contains(StringUtility.AVG2) || projectItems.get(i).getExpression().toString().contains(StringUtility.AVG3))
 				{
 					String groupByKey=(String) e.getKey();
 					Integer count=groupedTupleCount.get(groupByKey);
@@ -199,10 +200,10 @@ public class GroupByOperator implements Operator {
 		Table table = new Table();
 		String tableName = null;
 		if(groupByColumns != null)
-			tableName="GroupBy_" + groupByColumns.toString();
+			tableName = "GroupBy_" + groupByColumns.toString();
 		else
 		{
-			tableName="GroupBy" + Utility.grpByCounter; 
+			tableName = "GroupBy" + Utility.grpByCounter; 
 			Utility.grpByCounter++;
 		}
 		table.setName(tableName);

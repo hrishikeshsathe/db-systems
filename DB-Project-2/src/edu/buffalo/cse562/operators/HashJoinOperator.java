@@ -9,6 +9,7 @@ import net.sf.jsqlparser.expression.LeafValue;
 import net.sf.jsqlparser.schema.Table;
 import edu.buffalo.cse562.utility.Evaluator;
 import edu.buffalo.cse562.utility.Schema;
+import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Tuple;
 import edu.buffalo.cse562.utility.Utility;
 
@@ -130,23 +131,23 @@ public class HashJoinOperator implements Operator{
 
 	private void createNewJoinSchema(Table leftTable, Table rightTable) {
 		this.table = new Table();
-		this.table.setName(leftTable.getAlias() + " JOIN " + rightTable.getAlias());
-		this.table.setAlias(leftTable.getAlias() + " JOIN " + rightTable.getAlias());
+		this.table.setName(leftTable.getAlias() + StringUtility.JOIN + rightTable.getAlias());
+		this.table.setAlias(leftTable.getAlias() + StringUtility.JOIN + rightTable.getAlias());
 		Schema newSchema = new Schema(table);
 		HashMap<String, Integer> columns = new HashMap<String, Integer>();
 
 		for(String column: leftTableSchema.getColumns().keySet()){
-			if(column.contains("."))
+			if(column.contains(StringUtility.DOT))
 				columns.put(column, leftTableSchema.getColumns().get(column));
 			else
-				columns.put(leftTable.getAlias() + "." + column, leftTableSchema.getColumns().get(column));
+				columns.put(leftTable.getAlias() + StringUtility.DOT + column, leftTableSchema.getColumns().get(column));
 		}
 
 		for(String column: rightTableSchema.getColumns().keySet()){
-			if(column.contains("."))
+			if(column.contains(StringUtility.DOT))
 				columns.put(column, rightTableSchema.getColumns().get(column) + leftTableSchema.getColumns().size());
 			else
-				columns.put(rightTable.getAlias() + "." + column, rightTableSchema.getColumns().get(column) + leftTableSchema.getColumns().size());
+				columns.put(rightTable.getAlias() + StringUtility.DOT + column, rightTableSchema.getColumns().get(column) + leftTableSchema.getColumns().size());
 		}
 		
 		newSchema.setColumns(columns);

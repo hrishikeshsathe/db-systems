@@ -6,6 +6,7 @@ import java.util.HashMap;
 import net.sf.jsqlparser.expression.LeafValue;
 import net.sf.jsqlparser.schema.Table;
 import edu.buffalo.cse562.utility.Schema;
+import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Tuple;
 import edu.buffalo.cse562.utility.Utility;
 
@@ -109,25 +110,25 @@ public class JoinOperator implements Operator {
 
 	private void createNewJoinSchema(Table leftTable, Table rightTable) {
 		this.table = new Table();
-		this.table.setName(leftTable.getAlias() + " JOIN " + rightTable.getAlias());
-		this.table.setAlias(leftTable.getAlias() + " JOIN " + rightTable.getAlias());
+		this.table.setName(leftTable.getAlias() + StringUtility.JOIN + rightTable.getAlias());
+		this.table.setAlias(leftTable.getAlias() + StringUtility.JOIN + rightTable.getAlias());
 		Schema schema = new Schema(table);
 		HashMap<String, Integer> newSchema = new HashMap<String, Integer>();
 		HashMap<String, Integer> leftTableSchema = Utility.tableSchemas.get(leftTable.getName()).getColumns();
 		HashMap<String, Integer> rightTableSchema = Utility.tableSchemas.get(rightTable.getName()).getColumns();
 
 		for(String column: leftTableSchema.keySet()){
-			if(column.contains("."))
+			if(column.contains(StringUtility.DOT))
 				newSchema.put(column, leftTableSchema.get(column));
 			else
-				newSchema.put(leftTable.getAlias() + "." + column, leftTableSchema.get(column));
+				newSchema.put(leftTable.getAlias() + StringUtility.DOT + column, leftTableSchema.get(column));
 		}
 
 		for(String column: rightTableSchema.keySet()){
-			if(column.contains("."))
+			if(column.contains(StringUtility.DOT))
 				newSchema.put(column, rightTableSchema.get(column) + leftTableSchema.size());
 			else
-				newSchema.put(rightTable.getAlias() + "." + column, rightTableSchema.get(column) + leftTableSchema.size());
+				newSchema.put(rightTable.getAlias() + StringUtility.DOT + column, rightTableSchema.get(column) + leftTableSchema.size());
 		}
 		schema.setColumns(newSchema);
 		Utility.tableSchemas.put(table.getName(), schema);

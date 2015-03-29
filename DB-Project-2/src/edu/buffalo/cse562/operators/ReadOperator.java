@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import net.sf.jsqlparser.schema.Table;
+import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Tuple;
 
 public class ReadOperator implements Operator {
@@ -42,7 +43,7 @@ public class ReadOperator implements Operator {
 			line = br.readLine();
 			if(line == null)
 				return null;
-			tuple = new Tuple(line.split("\\|"), table.getName());
+			tuple = new Tuple(line.split(StringUtility.PIPE), table.getName());
 		}catch(IOException ex){
 			System.out.println("IOException in ReadOperator.readOneTuple()");
 			System.exit(0);

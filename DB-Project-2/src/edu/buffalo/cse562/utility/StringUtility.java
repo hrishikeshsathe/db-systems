@@ -1,0 +1,49 @@
+package edu.buffalo.cse562.utility;
+
+public class StringUtility {
+
+	public static final String SWAP = "--swap";
+	public static final String AVG1 = "AVG";
+	public static final String AVG2 = "Avg";
+	public static final String AVG3 = "avg";
+	public static final String SUM1 = "SUM";
+	public static final String SUM2 = "Sum";
+	public static final String SUM3 = "sum";
+	public static final String MIN1 = "MIN";
+	public static final String MIN2 = "Min";
+	public static final String MIN3 = "min";
+	public static final String MAX1 = "MAX";
+	public static final String MAX2 = "Max";
+	public static final String MAX3 = "max";
+	public static final String COUNT1 = "COUNT";
+	public static final String COUNT2 = "Count";
+	public static final String COUNT3 = "count";
+	public static final String DATE1 = "DATE";
+	public static final String DATE2 = "Date";
+	public static final String DATE3 = "date";
+	public static final String JOIN = " JOIN ";
+	public static final String DOT = ".";
+	public static final String DESC1 = " DESC";
+	public static final String DESC2 = " desc";
+	public static final String DESC3 = " Desc";
+	public static final String SPACE = " ";
+	public static final String PIPE = "\\|";
+	public static final String PIPE2 = "|";
+	public static final String SUBQUERY = "SubQuery";
+	public static final String DAT = ".dat";
+	public static final String UNCHECKED = "unchecked";
+	public static final String INT = "int";
+	public static final String DECIMAL = "decimal";
+	public static final String DOUBLE = "double";
+	public static final String CHAR1 = "char";
+	public static final String CHAR2= "CHAR";
+	public static final String STRING = "string";
+	public static final String VARCHAR = "varchar";
+	public static final String NORESULT1 = "NoResult";
+	public static final String NORESULT2 = "'NoResult'";
+	public static final String LONGVALUE = "LongValue";
+	public static final String DOUBLEVALUE = "DoubleValue";
+	public static final String DATEVALUE = "DateValue";
+	public static final String STRINGVALUE = "StringValue";
+	public static final String DESCREGEX = " (?i)DESC";
+}

@@ -59,16 +59,16 @@ public class Evaluator extends Eval{
 		if(columns.containsKey(c.getWholeColumnName()))
 			return tuple.get(columns.get(c.getWholeColumnName()));
 		else if(c.getTable() != null){
-			if(schema.getColumns().containsKey(c.getTable().getName().toUpperCase() + "." + c.getColumnName())){
-				return tuple.get(schema.getColumns().get(c.getTable().getName().toUpperCase() + "." + c.getColumnName()));
+			if(schema.getColumns().containsKey(c.getTable().getName().toUpperCase() + StringUtility.DOT + c.getColumnName())){
+				return tuple.get(schema.getColumns().get(c.getTable().getName().toUpperCase() + StringUtility.DOT + c.getColumnName()));
 			}
 		}
 
 		String tableName = schema.getTable().getAlias();
-		String[] joinTables = tableName.split(" ");
+		String[] joinTables = tableName.split(StringUtility.SPACE);
 		for(int i = 0; i < joinTables.length; i++){
-			if(columns.containsKey(joinTables[i] + "." + c.getColumnName()))
-				return tuple.get(columns.get(joinTables[i] + "." + c.getColumnName()));
+			if(columns.containsKey(joinTables[i] + StringUtility.DOT + c.getColumnName()))
+				return tuple.get(columns.get(joinTables[i] + StringUtility.DOT + c.getColumnName()));
 		}
 		return null;
 	}//end of eval
@@ -82,22 +82,23 @@ public class Evaluator extends Eval{
 		if(isHaving){
 			return eval(new Column(null, function.toString()));
 		}
-		else if(function.getName().contains("DATE") || function.getName().contains("date") || function.getName().contains("Date")){
+		else if(function.getName().contains(StringUtility.DATE1) || function.getName().contains(StringUtility.DATE2) || function.getName().contains(StringUtility.DATE3)){
 			return new DateValue(function.getParameters().getExpressions().get(0).toString());
 		}
 		else{
-			if(function.getName().contains("COUNT") || function.getName().contains("count"))
+			if(function.getName().contains(StringUtility.COUNT1) || function.getName().contains(StringUtility.COUNT2) || function.getName().contains(StringUtility.COUNT3))
 				return AggregateFunctions.getCount(column);
 
 			LeafValue functionParameter = eval((Expression) function.getParameters().getExpressions().get(0));
 
-			if(function.getName().contains("SUM") || function.getName().contains("AVG") || function.getName().contains("sum") || function.getName().contains("avg"))
+			if(function.getName().contains(StringUtility.SUM1) || function.getName().contains(StringUtility.SUM2) || function.getName().contains(StringUtility.SUM3) || 
+					function.getName().contains(StringUtility.AVG1) || function.getName().contains(StringUtility.AVG2) || function.getName().contains(StringUtility.AVG3))
 				return AggregateFunctions.calculateSum(functionParameter, column);
 
-			else if(function.getName().contains("MIN") || function.getName().contains("min"))
+			else if(function.getName().contains(StringUtility.MIN1) || function.getName().contains(StringUtility.MIN2) || function.getName().contains(StringUtility.MIN3))
 				return AggregateFunctions.getMinimum(functionParameter, column);
 
-			else if(function.getName().contains("MAX") || function.getName().contains("max"))
+			else if(function.getName().contains(StringUtility.MAX1) || function.getName().contains(StringUtility.MAX2) || function.getName().contains(StringUtility.MAX3))
 				return AggregateFunctions.getMaximum(functionParameter, column);
 		}
 		return null;

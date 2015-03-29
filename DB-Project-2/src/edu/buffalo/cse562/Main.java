@@ -13,6 +13,7 @@ import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.select.Select;
 import edu.buffalo.cse562.parsers.CreateTableParser;
 import edu.buffalo.cse562.parsers.SelectParser;
+import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Utility;
 import edu.buffalo.cse562.utility.Schema;
 
@@ -34,7 +35,7 @@ public class Main {
 	private static void initialize(String args[]) {
 		int argIndex;
 		Utility.dataDir = new File(args[1]);
-		if(args[2].equals("--swap")){
+		if(args[2].equals(StringUtility.SWAP)){
 			Utility.swapDir = new File(args[3]);
 			argIndex = 4;
 		}

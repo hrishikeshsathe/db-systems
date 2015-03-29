@@ -20,6 +20,7 @@ import edu.buffalo.cse562.operators.ReadOperator;
 import edu.buffalo.cse562.operators.TreeCreator;
 import edu.buffalo.cse562.utility.Printer;
 import edu.buffalo.cse562.utility.Schema;
+import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Utility;
 
 public class SelectParser {
@@ -52,8 +53,8 @@ public class SelectParser {
 		if(body.getFromItem() instanceof SubSelect){
 			table = new Table();
 			if(body.getFromItem().getAlias() == null){
-				table.setName("SubQuery" + Utility.subQueryCounter);
-				table.setAlias("SubQuery" + Utility.subQueryCounter);
+				table.setName(StringUtility.SUBQUERY + Utility.subQueryCounter);
+				table.setAlias(StringUtility.SUBQUERY + Utility.subQueryCounter);
 				Utility.subQueryCounter++;
 			}else{
 				table.setName(body.getFromItem().getAlias());
@@ -71,7 +72,7 @@ public class SelectParser {
 			table.setName(table.getName().toUpperCase());
 			Utility.checkAndSetTableAlias(table);
 			allCol = isAllColumns(body);
-			String fileName = Utility.dataDir.toString() + File.separator + table.getName() + ".dat";
+			String fileName = Utility.dataDir.toString() + File.separator + table.getName() + StringUtility.DAT;
 			Operator readOperator = new ReadOperator(new File(fileName), table);
 			operator = generateOperator(readOperator, table, body, allCol);
 			return operator;
@@ -79,7 +80,7 @@ public class SelectParser {
 	}//end getOperator
 
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(StringUtility.UNCHECKED)
 	/**
 	 * Check for allColumns. If true copy sub query schema as is.
 	 * @param table
@@ -131,7 +132,7 @@ public class SelectParser {
 	 * @return Operator object
 	 */
 	private static Operator generateOperator(Operator readOperator, Table table, PlainSelect body, Boolean allCol){
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings(StringUtility.UNCHECKED)
 		Operator operator = TreeCreator.createTree(readOperator,
 				table,
 				body.getWhere(),

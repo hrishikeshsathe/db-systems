@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import edu.buffalo.cse562.utility.Schema;
+import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Tuple;
 import edu.buffalo.cse562.utility.Utility;
 
@@ -60,11 +61,11 @@ public class OrderByOperator implements Operator {
 		ArrayList<Integer> orders = new ArrayList<Integer>();
 
 		for(OrderByElement e : orderByColumns){
-			if(e.toString().contains(" DESC") || e.toString().contains(" desc")){
-				indexes.add(schema.getColumns().get(e.toString().replaceAll(" (?i)DESC", "")));
+			if(e.toString().contains(StringUtility.DESC1) || e.toString().contains(StringUtility.DESC2) || e.toString().contains(StringUtility.DESC3)){
+				indexes.add(schema.getColumns().get(e.toString().replaceAll(StringUtility.DESCREGEX, "")));
 				orders.add(1);
 			}else{
-				indexes.add(schema.getColumns().get(e.toString().split(" ")[0]));
+				indexes.add(schema.getColumns().get(e.toString().split(StringUtility.SPACE)[0]));
 				orders.add(0);
 			}
 		}
