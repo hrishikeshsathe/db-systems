@@ -42,12 +42,12 @@ public class SelectParser {
 		SelectBody body = ((Select) statement).getSelectBody();
 		if(body instanceof PlainSelect){
 			Operator rootOperator = getOperator((PlainSelect) body);
-			System.out.println("Free memory before optimization " + Runtime.getRuntime().freeMemory() / 1048576);
+//			System.out.println("Free memory before optimization " + Runtime.getRuntime().freeMemory() / 1048576);
 			optimizeTree(rootOperator, (PlainSelect) body);
-			System.out.println("Free memory after optimization " + Runtime.getRuntime().freeMemory() / 1048576);
+//			System.out.println("Free memory after optimization " + Runtime.getRuntime().freeMemory() / 1048576);
 			Printer.print(rootOperator, ((PlainSelect) body).getLimit());
 			System.gc();
-			System.out.println("Free memory after execution" + Runtime.getRuntime().freeMemory() / 1048576);
+//			System.out.println("Free memory after execution" + Runtime.getRuntime().freeMemory() / 1048576);
 		}//end if
 	}//end parseStatement
 

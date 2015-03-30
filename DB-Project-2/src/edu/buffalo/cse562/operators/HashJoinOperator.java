@@ -1,13 +1,11 @@
 package edu.buffalo.cse562.operators;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LeafValue;
 import net.sf.jsqlparser.schema.Table;
-import edu.buffalo.cse562.utility.Evaluator;
 import edu.buffalo.cse562.utility.Schema;
 import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Tuple;
@@ -44,30 +42,28 @@ public class HashJoinOperator implements Operator{
 
 		hashIndex=new HashMap<String, ArrayList<Tuple>>();
 		Tuple leftTuple;
-		leftTuple = leftChild.readOneTuple();
 		String key;
+		String columnName = leftColumn.toString();
+		int columnIndex = leftTableSchema.getColumns().get(columnName);
+		leftTuple = leftChild.readOneTuple();
+		
 
 		while(leftTuple != null)
 		{
-			Evaluator evaluator = new Evaluator(leftTableSchema, leftTuple, false);
-			try{
-				LeafValue columnValue = (LeafValue) evaluator.eval(leftColumn);
-				key = columnValue.toString();
-				ArrayList<Tuple> tuples;
-				if(!hashIndex.containsKey(key))
-				{
-					tuples = new ArrayList<Tuple>();
-					tuples.add(leftTuple);
-					hashIndex.put(columnValue.toString(), tuples);
-				}
-				else
-				{
-					tuples = hashIndex.get(key);
-					tuples.add(leftTuple);
-					hashIndex.put(key, tuples);
-				}
-			}catch(SQLException e){
-				System.out.println("Exception occured in HashJoinOperator.readOneTuple()");
+			
+			key = leftTuple.get(columnIndex).toString();
+			ArrayList<Tuple> tuples;
+			if(!hashIndex.containsKey(key))
+			{
+				tuples = new ArrayList<Tuple>();
+				tuples.add(leftTuple);
+				hashIndex.put(key, tuples);
+			}
+			else
+			{
+				tuples = hashIndex.get(key);
+				tuples.add(leftTuple);
+				hashIndex.put(key, tuples);
 			}
 			leftTuple = leftChild.readOneTuple();
 		}//end of else
@@ -84,6 +80,9 @@ public class HashJoinOperator implements Operator{
 
 		if(hashIndex == null)
 			populateHashIndex();
+		String key;
+		String columnName = rightColumn.toString();
+		int columnIndex = rightTableSchema.getColumns().get(columnName);
 		if(leftTuples != null){
 			index++;
 			if(index < leftTuples.size())
@@ -93,19 +92,14 @@ public class HashJoinOperator implements Operator{
 		}
 		rightTuple = rightChild.readOneTuple();
 		while(rightTuple != null){
-			Evaluator evaluator = new Evaluator(rightTableSchema, rightTuple, false);
-			try {
-				LeafValue columnValue = (LeafValue) evaluator.eval(rightColumn);
-				String key = columnValue.toString();
-				if(hashIndex.containsKey(key))
-				{
-					leftTuples = hashIndex.get(key);
-					return joinTuple(leftTuples.get(index),rightTuple);
-				}
-				rightTuple = rightChild.readOneTuple();
-			} catch (SQLException e) {
-				System.out.println("Exception occured in HashJoinOperator.readOneTuple()");
-			}//end catch
+			
+			key = rightTuple.get(columnIndex).toString();
+			if(hashIndex.containsKey(key))
+			{
+				leftTuples = hashIndex.get(key);
+				return joinTuple(leftTuples.get(index),rightTuple);
+			}
+			rightTuple = rightChild.readOneTuple();
 		}
 		return null;
 	}
