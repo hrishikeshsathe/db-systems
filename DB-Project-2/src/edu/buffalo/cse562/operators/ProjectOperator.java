@@ -43,10 +43,11 @@ public class ProjectOperator implements Operator {
 			newSchema = new Schema(table);
 			HashMap<String, Integer> temp = new HashMap<String, Integer>();
 			for(int projectItemIndex = 0; projectItemIndex < projectItems.size(); projectItemIndex++){
-				if(projectItems.get(projectItemIndex).getAlias() == null)
+				String alias = projectItems.get(projectItemIndex).getAlias();
+				if(alias == null)
 					temp.put(projectItems.get(projectItemIndex).getExpression().toString(), projectItemIndex);
 				else
-					temp.put(projectItems.get(projectItemIndex).getAlias(), projectItemIndex);
+					temp.put(alias, projectItemIndex);
 			}
 			newSchema.setColumns(temp);
 			Utility.tableSchemas.put(table.getAlias(), newSchema);
@@ -66,7 +67,7 @@ public class ProjectOperator implements Operator {
 
 		if(tempTuple == null)
 			return null;
-		else if(allColumns || isGroupBy)
+		else if(isGroupBy || allColumns)
 			return tempTuple;
 		else{
 			for(SelectExpressionItem exp: projectItems){

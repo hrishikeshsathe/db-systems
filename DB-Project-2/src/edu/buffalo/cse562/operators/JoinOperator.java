@@ -102,8 +102,9 @@ public class JoinOperator implements Operator {
 
 	private void createNewJoinSchema(Table leftTable, Table rightTable) {
 		this.table = new Table();
-		this.table.setName(leftTable.getAlias() + StringUtility.JOIN + rightTable.getAlias());
-		this.table.setAlias(leftTable.getAlias() + StringUtility.JOIN + rightTable.getAlias());
+		String newTableName = leftTable.getAlias() + StringUtility.JOIN + rightTable.getAlias();
+		this.table.setName(newTableName);
+		this.table.setAlias(newTableName);
 		Schema schema = new Schema(table);
 		HashMap<String, Integer> newSchema = new HashMap<String, Integer>();
 		HashMap<String, Integer> leftTableSchema = Utility.tableSchemas.get(leftTable.getName()).getColumns();

@@ -10,10 +10,10 @@ public class Printer {
 		if(limit!=null)
 		{
 			long lim=limit.getRowCount();
-			int counter=0;
-			while(tuple != null && counter<lim){
+			long counter=lim;
+			while(tuple != null && counter > 0){
 					System.out.println(tuple.toString());
-				counter++;
+				counter--;
 				tuple = op.readOneTuple();
 			}
 		}

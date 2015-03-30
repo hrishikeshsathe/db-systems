@@ -145,7 +145,7 @@ public class Utility {
 		newOperator.getRightChild().setParent(newOperator);
 		old.getParent().setLeftChild(newOperator);
 		old = null;
-		System.gc();
+//		System.gc();
 	}
 
 	public static boolean isJoinCondition(Expression e)
@@ -173,7 +173,7 @@ public class Utility {
 		return tableSchemas.get(temp.getRightChild().getTable().getAlias()).getColumns();
 	}
 
-	public static void printTree(Operator root){
+	/*public static void printTree(Operator root){
 		if(root != null){
 			System.out.println("-----------------------------------------------------");
 			System.out.println(root.getClass());
@@ -192,6 +192,6 @@ public class Utility {
 			printTree(root.getLeftChild());
 			printTree(root.getRightChild());
 		}
-	}
+	}*/
 
 }

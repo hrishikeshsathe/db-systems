@@ -136,8 +136,8 @@ public class GroupByOperator implements Operator {
 			Entry<String, Tuple> e=it.next();
 			for(int i=0;i<projectItems.size();i++)
 			{
-				String expression = projectItems.get(i).getExpression().toString(); 
-				if(expression.contains(StringUtility.AVG1) || expression.contains(StringUtility.AVG2) || expression.contains(StringUtility.AVG3))
+				String expression = projectItems.get(i).getExpression().toString().toLowerCase(); 
+				if(expression.contains(StringUtility.AVG3))
 				{
 					String groupByKey=(String) e.getKey();
 					Integer count=groupedTupleCount.get(groupByKey);
@@ -162,11 +162,11 @@ public class GroupByOperator implements Operator {
 	private String getColumnValue(Evaluator eval,
 			ArrayList<Expression> groupByColumns) {
 		// TODO Auto-generated method stub
-		StringBuffer value = new StringBuffer();;
+		StringBuffer value = new StringBuffer();
 		try {
 			for(int i = 0; i < groupByColumns.size(); i++){
 				value.append(eval.eval(groupByColumns.get(i)).toString());
-				value.append(",");
+				value.append(StringUtility.COMMA);
 			}
 		} catch (SQLException e) {
 			System.out.println("SQLException in getColumnValue() - GroupByOperator");
@@ -181,11 +181,11 @@ public class GroupByOperator implements Operator {
 	 * @return
 	 */
 	private static String getColumnValueForDistinct(Evaluator eval, ArrayList<SelectExpressionItem> projectItems){
-		StringBuffer value = new StringBuffer();;
+		StringBuffer value = new StringBuffer();
 		try {
 			for(int i = 0; i < projectItems.size(); i++){
 				value.append(eval.eval(projectItems.get(i).getExpression()).toString());
-				value.append(",");
+				value.append(StringUtility.COMMA);
 			}
 		} catch (SQLException e) {
 			System.out.println("SQLException in getColumnValueForDistinct() - GroupByOperator");
@@ -198,10 +198,10 @@ public class GroupByOperator implements Operator {
 		Table table = new Table();
 		String tableName = null;
 		if(groupByColumns != null)
-			tableName = "GroupBy_" + groupByColumns.toString();
+			tableName = StringUtility.GROUPBY + groupByColumns.toString();
 		else
 		{
-			tableName = "GroupBy" + Utility.grpByCounter; 
+			tableName = StringUtility.GROUPBY + Utility.grpByCounter; 
 			Utility.grpByCounter++;
 		}
 		table.setName(tableName);

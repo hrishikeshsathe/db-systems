@@ -16,6 +16,7 @@ public class SelectionOperator implements Operator {
 	private Operator parent;
 	Schema schema;
 	Expression where;
+	boolean tupleSatisfiesCondition;
 	
 	public Expression getWhere() {
 		return where;
@@ -48,8 +49,7 @@ public class SelectionOperator implements Operator {
 	public Tuple readOneTuple() {
 		Tuple tuple = null;
 		tuple = leftChild.readOneTuple();
-		boolean tupleSatisfiesCondition;
-		
+				
 		if(tuple == null)
 			return null;
 		while(tuple != null){

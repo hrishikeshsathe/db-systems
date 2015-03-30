@@ -73,7 +73,7 @@ public class OrderByOperator implements Operator {
 			else
 				indexes.add(schema.getColumns().get(columnName));
 			// order 1 indicates descending, order 0 indicates ascending
-			if(e.toString().toLowerCase().contains(StringUtility.DESC2))
+			if((e.toString().toLowerCase().contains(StringUtility.DESC2)))
 				orders.add(1);
 			else
 				orders.add(0);

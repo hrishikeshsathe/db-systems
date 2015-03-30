@@ -48,4 +48,6 @@ public class StringUtility {
 	public static final String DESCREGEX = " (?i)DESC";
 	public static final String LEFT = "left";
 	public static final String RIGHT = "right";
+	public static final Object COMMA = ",";
+	public static final String GROUPBY = "GroupBy";
 }

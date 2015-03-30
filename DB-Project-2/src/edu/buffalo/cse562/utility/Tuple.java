@@ -59,7 +59,7 @@ public class Tuple implements Comparable<Tuple>{
 	 */
 	public Tuple(int size){
 		this.oneTuple = new ArrayList<LeafValue>();
-		for(int i = 0; i < size; i++)
+		for(int i = size; i > 0; i--)
 			this.oneTuple.add(null);
 	}
 
@@ -93,12 +93,13 @@ public class Tuple implements Comparable<Tuple>{
 	 * Return the tuple as a string
 	 */
 	public String toString(){
-		String tuple = "";
+		
+		StringBuffer tuple = new StringBuffer();
 		for(int i = 0; i < oneTuple.size() - 1; i++){
-			tuple += checkIfStringValue(oneTuple.get(i)) + StringUtility.PIPE2;
+			tuple.append(checkIfStringValue(oneTuple.get(i)) + StringUtility.PIPE2);
 		}
-		tuple += checkIfStringValue(oneTuple.get(oneTuple.size() - 1));
-		return tuple;
+		tuple.append(checkIfStringValue(oneTuple.get(oneTuple.size() - 1)));
+		return tuple.toString();
 	}
 
 	/**

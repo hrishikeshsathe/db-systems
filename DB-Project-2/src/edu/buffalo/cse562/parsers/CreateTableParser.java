@@ -33,7 +33,7 @@ public class CreateTableParser {
 				cols.put(table.getAlias() + StringUtility.DOT + list.get(colIndex).getColumnName(), colIndex);
 				dataType.add(list.get(colIndex).getColDataType().toString());
 			}
-			
+			list = null;
 			schema.setColumns(cols);
 			Utility.tableSchemas.put(table.getName(), schema);
 			Utility.tableDataTypes.put(table.getName(), dataType);

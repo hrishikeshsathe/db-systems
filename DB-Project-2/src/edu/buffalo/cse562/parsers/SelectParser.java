@@ -46,7 +46,7 @@ public class SelectParser {
 			optimizeTree(rootOperator, (PlainSelect) body);
 //			System.out.println("Free memory after optimization " + Runtime.getRuntime().freeMemory() / 1048576);
 			Printer.print(rootOperator, ((PlainSelect) body).getLimit());
-			System.gc();
+//			System.gc();
 //			System.out.println("Free memory after execution" + Runtime.getRuntime().freeMemory() / 1048576);
 		}//end if
 	}//end parseStatement
@@ -101,7 +101,7 @@ public class SelectParser {
 //			Utility.printTree(rootOperator);
 //			System.out.println("#################################################################################");
 		}
-		System.gc();
+//		System.gc();
 
 	}
 
@@ -126,10 +126,11 @@ public class SelectParser {
 				table.setName(body.getFromItem().getAlias());
 				table.setAlias(body.getFromItem().getAlias());
 			}
-			operator = getOperator((PlainSelect) ((SubSelect) body.getFromItem()).getSelectBody());
+			PlainSelect selectBody = (PlainSelect) ((SubSelect) body.getFromItem()).getSelectBody();
+			operator = getOperator(selectBody);
 			if(isAllColumns(body))
 				allCol = true;
-			createSchema(table, ((PlainSelect) ((SubSelect) body.getFromItem()).getSelectBody()), operator);
+			createSchema(table, selectBody, operator);
 			operator = generateOperator(operator, table, body, allCol);
 			return operator;
 		}//end subQuery if
@@ -174,10 +175,11 @@ public class SelectParser {
 		for(int colIndex = 0; colIndex < selectItems.size(); colIndex++)
 		{
 			// Put alias if it is present else put actual expression
-			if(selectItems.get(colIndex).getAlias()!=null)
+			String columnALias = selectItems.get(colIndex).getAlias();
+			if(columnALias != null)
 				cols.put(selectItems.get(colIndex).getAlias(), colIndex);
 			else
-				cols.put(selectItems.get(colIndex).getExpression().toString(), colIndex);
+				cols.put(columnALias, colIndex);
 		}
 		schema.setColumns(cols);
 		//Add new schema to the list of schemas

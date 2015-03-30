@@ -11,6 +11,7 @@ import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Utility;
 
 public class TreeCreator {
@@ -45,7 +46,7 @@ public class TreeCreator {
 				Table rightTable = (Table) joins.get(joinIndex).getRightItem();
 				rightTable.setName(rightTable.getName().toUpperCase());
 				Utility.checkAndSetTableAlias(rightTable);
-				String fileName = Utility.dataDir.toString() + File.separator + rightTable.getName().toString() + ".dat";
+				String fileName = Utility.dataDir.toString() + File.separator + rightTable.getName().toString() + StringUtility.DAT;
 				Operator rightOperator = new ReadOperator(new File(fileName), rightTable);
 				Operator joinOperator = new JoinOperator(operator, rightOperator);
 				Utility.setParentAndChild(joinOperator, operator, rightOperator);

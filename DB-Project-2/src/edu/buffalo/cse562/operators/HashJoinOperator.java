@@ -46,11 +46,11 @@ public class HashJoinOperator implements Operator{
 		String columnName = leftColumn.toString();
 		int columnIndex = leftTableSchema.getColumns().get(columnName);
 		leftTuple = leftChild.readOneTuple();
-		
+
 
 		while(leftTuple != null)
 		{
-			
+
 			key = leftTuple.get(columnIndex).toString();
 			ArrayList<Tuple> tuples;
 			if(!hashIndex.containsKey(key))
@@ -92,7 +92,7 @@ public class HashJoinOperator implements Operator{
 		}
 		rightTuple = rightChild.readOneTuple();
 		while(rightTuple != null){
-			
+
 			key = rightTuple.get(columnIndex).toString();
 			if(hashIndex.containsKey(key))
 			{
@@ -119,8 +119,9 @@ public class HashJoinOperator implements Operator{
 
 	private void createNewJoinSchema(Table leftTable, Table rightTable) {
 		this.table = new Table();
-		this.table.setName(leftTable.getAlias() + StringUtility.JOIN + rightTable.getAlias());
-		this.table.setAlias(leftTable.getAlias() + StringUtility.JOIN + rightTable.getAlias());
+		String newTableName = leftTable.getAlias() + StringUtility.JOIN + rightTable.getAlias();
+		this.table.setName(newTableName);
+		this.table.setAlias(newTableName);
 		Schema newSchema = new Schema(table);
 		HashMap<String, Integer> columns = new HashMap<String, Integer>();
 

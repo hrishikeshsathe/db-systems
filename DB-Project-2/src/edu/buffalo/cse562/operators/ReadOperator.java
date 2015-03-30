@@ -10,12 +10,13 @@ import edu.buffalo.cse562.utility.StringUtility;
 import edu.buffalo.cse562.utility.Tuple;
 
 public class ReadOperator implements Operator {
-	
+
 	File tableData = null;
 	BufferedReader br = null;
 	Table table = null;
 	Operator parent = null;
-	
+	String line;
+
 	public ReadOperator(File file, Table table) {
 		this.tableData = file;
 		this.table = table;
@@ -36,11 +37,11 @@ public class ReadOperator implements Operator {
 
 	@Override
 	public Tuple readOneTuple() {
-		
+
 		if(br == null)
 			return null;
-		String line = new String("");
 		Tuple tuple = null;
+		
 		try{
 			line = br.readLine();
 			if(line == null)
@@ -75,7 +76,7 @@ public class ReadOperator implements Operator {
 
 	@Override
 	public void setLeftChild(Operator leftChild) {
-		
+
 	}
 
 	@Override
