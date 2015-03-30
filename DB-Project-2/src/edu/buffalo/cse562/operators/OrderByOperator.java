@@ -61,8 +61,8 @@ public class OrderByOperator implements Operator {
 		ArrayList<Integer> orders = new ArrayList<Integer>();
 
 		for(OrderByElement e : orderByColumns){
-			String columnName = e.toString().split(" ")[0];
-			if(!columnName.contains("."))
+			String columnName = e.toString().split(StringUtility.SPACE)[0];
+			if(!columnName.contains(StringUtility.DOT))
 			{	
 				for(String key : schema.getColumns().keySet())
 				{
@@ -73,7 +73,7 @@ public class OrderByOperator implements Operator {
 			else
 				indexes.add(schema.getColumns().get(columnName));
 			// order 1 indicates descending, order 0 indicates ascending
-			if(e.toString().contains(StringUtility.DESC1) || e.toString().contains(StringUtility.DESC2) || e.toString().contains(StringUtility.DESC3))
+			if(e.toString().toLowerCase().contains(StringUtility.DESC2))
 				orders.add(1);
 			else
 				orders.add(0);

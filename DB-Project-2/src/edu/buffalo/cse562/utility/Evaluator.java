@@ -68,13 +68,6 @@ public class Evaluator extends Eval{
 				return tuple.get(schema.getColumns().get(c.getTable().getName().toUpperCase() + StringUtility.DOT + c.getColumnName()));
 			}
 		}
-
-//		String tableName = schema.getTable().getAlias();
-//		String[] joinTables = tableName.split(StringUtility.SPACE);
-//		for(int i = 0; i < joinTables.length; i++){
-//			if(columns.containsKey(joinTables[i] + StringUtility.DOT + c.getColumnName()))
-//				return tuple.get(columns.get(joinTables[i] + StringUtility.DOT + c.getColumnName()));
-//		}
 		return null;
 	}//end of eval
 
