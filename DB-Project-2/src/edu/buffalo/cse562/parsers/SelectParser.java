@@ -3,11 +3,13 @@ package edu.buffalo.cse562.parsers;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Parenthesis;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -55,22 +57,52 @@ public class SelectParser {
 		while(!(temp instanceof SelectionOperator))
 			temp = temp.getLeftChild();
 		if(!(temp.getLeftChild() instanceof ReadOperator) && (temp.getLeftChild() instanceof JoinOperator)){
-			for(Expression e: whereExpressions){
-				if(Utility.isJoinCondition(e))
-					Utility.optimizeJoin(temp.getLeftChild(), e, (Column)((BinaryExpression)e).getLeftExpression(), (Column)((BinaryExpression)e).getRightExpression());
-				else{
+			Iterator<Expression> it = whereExpressions.iterator();
+			while(it.hasNext()){
+				Expression e = it.next();
+				if(Utility.isJoinCondition(e)){
+					if(Utility.optimizeJoin(temp.getLeftChild(), e, (Column)((BinaryExpression)e).getLeftExpression(), (Column)((BinaryExpression)e).getRightExpression()))
+						it.remove();
+				}else{
 					if(e instanceof Parenthesis){
-						Utility.optimizeSelect(temp.getLeftChild(), ((Parenthesis) e).getExpression(), (Column) ((BinaryExpression)((OrExpression)((Parenthesis) e).getExpression()).getLeftExpression()).getLeftExpression());
+						if(Utility.optimizeSelect(temp.getLeftChild(), ((Parenthesis) e).getExpression(), (Column) ((BinaryExpression)((OrExpression)((Parenthesis) e).getExpression()).getLeftExpression()).getLeftExpression()))
+							it.remove();
 					}
 					else
-						Utility.optimizeSelect(temp.getLeftChild(), e, (Column)((BinaryExpression)e).getLeftExpression());
+						if(Utility.optimizeSelect(temp.getLeftChild(), e, (Column)((BinaryExpression)e).getLeftExpression()))
+							it.remove();
+				}
+//				Utility.printTree(rootOperator);
+//				System.out.println("#################################################################################");
+			}
+			it = null;
+			if(whereExpressions.size() == 0){
+				temp.getParent().setLeftChild(temp.getLeftChild());
+				temp.getLeftChild().setParent(temp.getParent());
+				temp = null;
+			}else{
+				if(whereExpressions.size() == 1)
+					((SelectionOperator)temp).setWhere(whereExpressions.get(0));
+				else
+				{
+					AndExpression newExpression = null;
+					for(int i = 0; i < whereExpressions.size(); i++){
+						if(newExpression == null){
+							newExpression = new AndExpression();
+							newExpression.setLeftExpression(whereExpressions.get(i));
+							newExpression.setRightExpression(whereExpressions.get(i + 1));
+						}
+						else
+							newExpression = new AndExpression(newExpression, whereExpressions.get(i));
+					}
+					((SelectionOperator)temp).setWhere(newExpression);
 				}
 			}
-			temp.getParent().setLeftChild(temp.getLeftChild());
-			temp.getLeftChild().setParent(temp.getParent());
-			temp = null;
-			System.gc();
+//			Utility.printTree(rootOperator);
+//			System.out.println("#################################################################################");
 		}
+		System.gc();
+
 	}
 
 	/**

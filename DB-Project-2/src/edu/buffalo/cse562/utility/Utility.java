@@ -74,35 +74,46 @@ public class Utility {
 		return ret;
 	}
 
-	public static void optimizeJoin(Operator root, Expression expression, Column leftColumn, Column rightColumn){
+	public static boolean optimizeJoin(Operator root, Expression expression, Column leftColumn, Column rightColumn){
 		HashMap<String, Integer> leftSchema = getSchema(root, StringUtility.LEFT);
 		HashMap<String, Integer> rightSchema = getSchema(root, StringUtility.RIGHT);
 		if((containsColumn(leftSchema, leftColumn) && containsColumn(rightSchema, rightColumn))){
-			Operator hashJoinOperator = createHashJoin(root, leftColumn, rightColumn);
-			changeParentsForJoin(hashJoinOperator, root);
-			return;
+			if(root instanceof JoinOperator){
+				Operator hashJoinOperator = createHashJoin(root, leftColumn, rightColumn);
+				changeParentsForJoin(hashJoinOperator, root);
+				return true;
+			}
+			else 
+				return false;
 		}
 		if(containsColumn(leftSchema, rightColumn) && containsColumn(rightSchema, leftColumn)){
-			Operator hashJoinOperator = createHashJoin(root, rightColumn, leftColumn);
-			changeParentsForJoin(hashJoinOperator, root);
-			return;
+			if(root instanceof JoinOperator){
+				Operator hashJoinOperator = createHashJoin(root, rightColumn, leftColumn);
+				changeParentsForJoin(hashJoinOperator, root);
+				return true;
+			}
+			else return false;
 		}
 		if(containsColumn(leftSchema, leftColumn) && containsColumn(leftSchema, rightColumn))
-			optimizeJoin(root.getLeftChild(), expression, leftColumn, rightColumn);
+			return optimizeJoin(root.getLeftChild(), expression, leftColumn, rightColumn);
 		else
-			optimizeJoin(root.getRightChild(), expression, leftColumn, rightColumn);
+			return optimizeJoin(root.getRightChild(), expression, leftColumn, rightColumn);
 	}
 
-	public static void optimizeSelect(Operator root, Expression expression, Column column) {
+	public static boolean optimizeSelect(Operator root, Expression expression, Column column) {
 		if(root instanceof ReadOperator){
 			createSelectOperator(root, expression);
-			return;
+			return true;
 		}
 		HashMap<String, Integer> leftSchema = getSchema(root, StringUtility.LEFT);
+		HashMap<String, Integer> rightSchema = null;
+		if(root.getRightChild() != null)
+			rightSchema = getSchema(root, StringUtility.RIGHT);
 		if(containsColumn(leftSchema, column))
-			optimizeSelect(root.getLeftChild(), expression, column);
-		else
-			optimizeSelect(root.getRightChild(), expression, column);
+			return optimizeSelect(root.getLeftChild(), expression, column);
+		else if(rightSchema != null && containsColumn(rightSchema, column))
+			return optimizeSelect(root.getRightChild(), expression, column);
+		return false;
 	}
 
 	public static void createSelectOperator(Operator root, Expression where){
@@ -151,8 +162,6 @@ public class Utility {
 
 	public static boolean containsColumn(HashMap<String, Integer> columns, Column c){
 		c.getTable().setName(c.getTable().getName().toUpperCase());
-		if(columns.containsKey(c.getColumnName()))
-			return true;
 		if(columns.containsKey(c.getWholeColumnName()))
 			return true;
 		return false;
