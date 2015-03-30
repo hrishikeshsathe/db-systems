@@ -57,20 +57,28 @@ public class OrderByOperator implements Operator {
 		}
 
 		ArrayList<Integer> indexes = new ArrayList<Integer>();
-		// order 1 indicates descending, order 0 indicates ascending
+
 		ArrayList<Integer> orders = new ArrayList<Integer>();
 
 		for(OrderByElement e : orderByColumns){
-			if(e.toString().contains(StringUtility.DESC1) || e.toString().contains(StringUtility.DESC2) || e.toString().contains(StringUtility.DESC3)){
-				indexes.add(schema.getColumns().get(e.toString().replaceAll(StringUtility.DESCREGEX, "")));
-				orders.add(1);
-			}else{
-				indexes.add(schema.getColumns().get(e.toString().split(StringUtility.SPACE)[0]));
-				orders.add(0);
+			String columnName = e.toString().split(" ")[0];
+			if(!columnName.contains("."))
+			{	
+				for(String key : schema.getColumns().keySet())
+				{
+					if(key.contains(columnName))
+						indexes.add(schema.getColumns().get(key));
+				}
 			}
-		}
-		Tuple.sortTupleList(sortedTuples, indexes, orders, table.getAlias());
-	}
+			else
+				indexes.add(schema.getColumns().get(columnName));
+			// order 1 indicates descending, order 0 indicates ascending
+			if(e.toString().contains(StringUtility.DESC1) || e.toString().contains(StringUtility.DESC2) || e.toString().contains(StringUtility.DESC3))
+				orders.add(1);
+			else
+				orders.add(0);
+		}	
+		Tuple.sortTupleList(sortedTuples, indexes, orders, table.getAlias());}
 
 	@Override
 	public Table getTable() {

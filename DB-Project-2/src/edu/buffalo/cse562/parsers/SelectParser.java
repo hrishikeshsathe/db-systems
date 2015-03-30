@@ -3,8 +3,13 @@ package edu.buffalo.cse562.parsers;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Parenthesis;
+import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.AllColumns;
@@ -15,8 +20,10 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectBody;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
+import edu.buffalo.cse562.operators.JoinOperator;
 import edu.buffalo.cse562.operators.Operator;
 import edu.buffalo.cse562.operators.ReadOperator;
+import edu.buffalo.cse562.operators.SelectionOperator;
 import edu.buffalo.cse562.operators.TreeCreator;
 import edu.buffalo.cse562.utility.Printer;
 import edu.buffalo.cse562.utility.Schema;
@@ -31,13 +38,36 @@ public class SelectParser {
 	 */
 	public static void parseStatement(Statement statement) {
 		SelectBody body = ((Select) statement).getSelectBody();
-
 		if(body instanceof PlainSelect){
 			Operator rootOperator = getOperator((PlainSelect) body);
+			optimizeTree(rootOperator, (PlainSelect) body);
 			Printer.print(rootOperator, ((PlainSelect) body).getLimit());
 		}//end if
 	}//end parseStatement
 
+	public static void optimizeTree(Operator rootOperator, PlainSelect body){
+		List<Expression> whereExpressions = Utility.splitAndClauses(((PlainSelect) body).getWhere());
+		Operator temp = rootOperator;
+		while(!(temp instanceof SelectionOperator))
+			temp = temp.getLeftChild();
+		if(!(temp.getLeftChild() instanceof ReadOperator) && (temp.getLeftChild() instanceof JoinOperator)){
+			for(Expression e: whereExpressions){
+				if(Utility.isJoinCondition(e))
+					Utility.optimizeJoin(temp.getLeftChild(), e, (Column)((BinaryExpression)e).getLeftExpression(), (Column)((BinaryExpression)e).getRightExpression());
+				else{
+					if(e instanceof Parenthesis){
+						Utility.optimizeSelect(temp.getLeftChild(), ((Parenthesis) e).getExpression(), (Column) ((BinaryExpression)((OrExpression)((Parenthesis) e).getExpression()).getLeftExpression()).getLeftExpression());
+					}
+					else
+						Utility.optimizeSelect(temp.getLeftChild(), e, (Column)((BinaryExpression)e).getLeftExpression());
+				}
+			}
+			temp.getParent().setLeftChild(temp.getLeftChild());
+			temp.getLeftChild().setParent(temp.getParent());
+			temp = null;
+			System.gc();
+		}
+	}
 
 	/**
 	 * Accept a PlainSelect object and return an operator. Operator can be dumped to print result.

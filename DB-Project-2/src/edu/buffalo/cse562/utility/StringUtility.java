@@ -46,4 +46,6 @@ public class StringUtility {
 	public static final String DATEVALUE = "DateValue";
 	public static final String STRINGVALUE = "StringValue";
 	public static final String DESCREGEX = " (?i)DESC";
+	public static final String LEFT = "left";
+	public static final String RIGHT = "right";
 }

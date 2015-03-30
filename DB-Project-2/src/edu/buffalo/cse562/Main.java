@@ -24,7 +24,8 @@ public class Main {
 		resetAll();
 		for(File sql: Utility.sqlFiles){
 			FileReader fr = getFileReader(sql);
-			parseWithJsql(fr);			
+			parseWithJsql(fr);		
+			
 		}
 	}// end of main
 
@@ -65,7 +66,9 @@ public class Main {
 			Statement statement = null;
 			while((statement  = parser.Statement()) != null){
 				if(statement instanceof Select){
+					long startTime = System.currentTimeMillis();
 					SelectParser.parseStatement(statement);
+					System.out.println(System.currentTimeMillis() - startTime);
 				}
 				else if(statement instanceof CreateTable){
 					CreateTableParser.parseStatement(statement);

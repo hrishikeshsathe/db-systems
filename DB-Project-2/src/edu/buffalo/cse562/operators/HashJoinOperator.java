@@ -25,7 +25,7 @@ public class HashJoinOperator implements Operator{
 	Schema leftTableSchema;
 	Schema rightTableSchema;
 	Table table;
-	static private HashMap<String,ArrayList<Tuple>> hashIndex;
+	private HashMap<String,ArrayList<Tuple>> hashIndex;
 	static int index = 0;
 
 	public HashJoinOperator(Operator leftOperator,
@@ -84,34 +84,30 @@ public class HashJoinOperator implements Operator{
 
 		if(hashIndex == null)
 			populateHashIndex();
-		if(leftTuples == null){
-			rightTuple = rightChild.readOneTuple();
-			if(rightTuple != null){
-				Evaluator evaluator = new Evaluator(rightTableSchema, rightTuple, false);
-				try {
-					LeafValue columnValue = (LeafValue) evaluator.eval(rightColumn);
-					String key = columnValue.toString();
-					if(hashIndex.containsKey(key))
-					{
-						leftTuples = hashIndex.get(key);
-						return joinTuple(leftTuples.get(index),rightTuple);
-					}
-				} catch (SQLException e) {
-					System.out.println("Exception occured in HashJoinOperator.readOneTuple()");
-				}
-			}
-		}else{
+		if(leftTuples != null){
 			index++;
 			if(index < leftTuples.size())
-				return joinTuple(leftTuples.get(index),rightTuple);
-			else{
+				return joinTuple(leftTuples.get(index), rightTuple);
+			else
 				index = 0;
-				leftTuples = null;
-				return Utility.noResult;
-			}
+		}
+		rightTuple = rightChild.readOneTuple();
+		while(rightTuple != null){
+			Evaluator evaluator = new Evaluator(rightTableSchema, rightTuple, false);
+			try {
+				LeafValue columnValue = (LeafValue) evaluator.eval(rightColumn);
+				String key = columnValue.toString();
+				if(hashIndex.containsKey(key))
+				{
+					leftTuples = hashIndex.get(key);
+					return joinTuple(leftTuples.get(index),rightTuple);
+				}
+				rightTuple = rightChild.readOneTuple();
+			} catch (SQLException e) {
+				System.out.println("Exception occured in HashJoinOperator.readOneTuple()");
+			}//end catch
 		}
 		return null;
-
 	}
 
 	private Tuple joinTuple(Tuple leftTuple, Tuple rightTuple) {

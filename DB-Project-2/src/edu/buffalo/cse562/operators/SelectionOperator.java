@@ -16,8 +16,18 @@ public class SelectionOperator implements Operator {
 	private Operator parent;
 	Schema schema;
 	Expression where;
+	
+	public Expression getWhere() {
+		return where;
+	}
+
+	public void setWhere(Expression where) {
+		this.where = where;
+	}
+
 	Table table;
 	boolean isHaving;
+
 	
 	public SelectionOperator(Operator operator, Table table, Expression where,
 			boolean isHaving) {
@@ -26,6 +36,7 @@ public class SelectionOperator implements Operator {
 		this.where = where;
 		this.schema = Utility.tableSchemas.get(table.getAlias());
 		this.isHaving = isHaving;
+
 	}
 
 	@Override
