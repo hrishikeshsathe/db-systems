@@ -164,5 +164,25 @@ public class Utility {
 		return tableSchemas.get(temp.getRightChild().getTable().getAlias()).getColumns();
 	}
 
+	public static void printTree(Operator root){
+		if(root != null){
+			System.out.println("-----------------------------------------------------");
+			System.out.println(root.getClass());
+			if(root instanceof SelectionOperator)
+				System.out.println(((SelectionOperator) root).getWhere());
+			else if(root instanceof ReadOperator)
+				System.out.println(root.getTable().getAlias());
+			else if(root instanceof JoinOperator || root instanceof HashJoinOperator){
+				System.out.println(root.getLeftChild().getTable().getAlias());
+				System.out.println(root.getRightChild().getTable().getAlias());
+				if(root instanceof HashJoinOperator){
+					System.out.println(((HashJoinOperator) root).getLeftColumn());
+					System.out.println(((HashJoinOperator) root).getRightColumn());
+				}
+			}
+			printTree(root.getLeftChild());
+			printTree(root.getRightChild());
+		}
+	}
 
 }

@@ -47,7 +47,6 @@ public class GroupByOperator implements Operator {
 		index = -1;
 		groupedTupleCount = new HashMap<String, Integer>();
 		createGroupBySchema();
-
 	}
 
 	@Override
@@ -137,7 +136,8 @@ public class GroupByOperator implements Operator {
 			Entry<String, Tuple> e=it.next();
 			for(int i=0;i<projectItems.size();i++)
 			{
-				if(projectItems.get(i).getExpression().toString().contains(StringUtility.AVG1) || projectItems.get(i).getExpression().toString().contains(StringUtility.AVG2) || projectItems.get(i).getExpression().toString().contains(StringUtility.AVG3))
+				String expression = projectItems.get(i).getExpression().toString(); 
+				if(expression.contains(StringUtility.AVG1) || expression.contains(StringUtility.AVG2) || expression.contains(StringUtility.AVG3))
 				{
 					String groupByKey=(String) e.getKey();
 					Integer count=groupedTupleCount.get(groupByKey);

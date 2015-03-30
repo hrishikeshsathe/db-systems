@@ -30,7 +30,7 @@ public class CreateTableParser {
 			@SuppressWarnings(StringUtility.UNCHECKED)
 			List<ColumnDefinition> list = ((CreateTable)statement).getColumnDefinitions();
 			for(int colIndex = 0; colIndex < list.size(); colIndex++){
-				cols.put(list.get(colIndex).getColumnName(), colIndex);
+				cols.put(table.getAlias() + StringUtility.DOT + list.get(colIndex).getColumnName(), colIndex);
 				dataType.add(list.get(colIndex).getColDataType().toString());
 			}
 			

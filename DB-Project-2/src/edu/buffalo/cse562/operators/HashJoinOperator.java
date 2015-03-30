@@ -172,6 +172,12 @@ public class HashJoinOperator implements Operator{
 	@Override
 	public void setParent(Operator parent) {
 		this.parent = parent;
+	}
+	public Expression getLeftColumn() {
+		return this.leftColumn;
+	}
+	public Expression getRightColumn() {
+		return this.rightColumn;
 	}	
 
 }

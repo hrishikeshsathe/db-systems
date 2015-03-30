@@ -52,24 +52,29 @@ public class Evaluator extends Eval{
 	public LeafValue eval(Column c) throws SQLException {
 
 		HashMap<String, Integer> columns = schema.getColumns();
+		String columnName = schema.getTable().getAlias() + StringUtility.DOT + c.getColumnName();
+
 		//If schema contains original column name - A
 		if(columns.containsKey(c.getColumnName()))
 			return tuple.get(columns.get(c.getColumnName()));
 		//if schema contains whole column name - R.A
-		if(columns.containsKey(c.getWholeColumnName()))
+		else if(columns.containsKey(c.getWholeColumnName()))
 			return tuple.get(columns.get(c.getWholeColumnName()));
+		else if(columns.containsKey(columnName)){
+			return tuple.get(columns.get(columnName));
+		}
 		else if(c.getTable() != null){
 			if(schema.getColumns().containsKey(c.getTable().getName().toUpperCase() + StringUtility.DOT + c.getColumnName())){
 				return tuple.get(schema.getColumns().get(c.getTable().getName().toUpperCase() + StringUtility.DOT + c.getColumnName()));
 			}
 		}
 
-		String tableName = schema.getTable().getAlias();
-		String[] joinTables = tableName.split(StringUtility.SPACE);
-		for(int i = 0; i < joinTables.length; i++){
-			if(columns.containsKey(joinTables[i] + StringUtility.DOT + c.getColumnName()))
-				return tuple.get(columns.get(joinTables[i] + StringUtility.DOT + c.getColumnName()));
-		}
+//		String tableName = schema.getTable().getAlias();
+//		String[] joinTables = tableName.split(StringUtility.SPACE);
+//		for(int i = 0; i < joinTables.length; i++){
+//			if(columns.containsKey(joinTables[i] + StringUtility.DOT + c.getColumnName()))
+//				return tuple.get(columns.get(joinTables[i] + StringUtility.DOT + c.getColumnName()));
+//		}
 		return null;
 	}//end of eval
 
@@ -78,27 +83,28 @@ public class Evaluator extends Eval{
 	 * Evaluates a function - SUM, MIN, MAX, AVG, COUNT and returns a LeafValue
 	 */
 	public LeafValue eval(Function function) throws SQLException{
-
+		
+		String functionName = function.getName().toLowerCase();
 		if(isHaving){
 			return eval(new Column(null, function.toString()));
 		}
-		else if(function.getName().contains(StringUtility.DATE1) || function.getName().contains(StringUtility.DATE2) || function.getName().contains(StringUtility.DATE3)){
+		else if(functionName.contains(StringUtility.DATE3)){
 			return new DateValue(function.getParameters().getExpressions().get(0).toString());
 		}
 		else{
-			if(function.getName().contains(StringUtility.COUNT1) || function.getName().contains(StringUtility.COUNT2) || function.getName().contains(StringUtility.COUNT3))
+			if(functionName.contains(StringUtility.COUNT3))
 				return AggregateFunctions.getCount(column);
 
 			LeafValue functionParameter = eval((Expression) function.getParameters().getExpressions().get(0));
 
-			if(function.getName().contains(StringUtility.SUM1) || function.getName().contains(StringUtility.SUM2) || function.getName().contains(StringUtility.SUM3) || 
-					function.getName().contains(StringUtility.AVG1) || function.getName().contains(StringUtility.AVG2) || function.getName().contains(StringUtility.AVG3))
+			if(functionName.contains(StringUtility.SUM3) || 
+					functionName.contains(StringUtility.AVG3))
 				return AggregateFunctions.calculateSum(functionParameter, column);
 
-			else if(function.getName().contains(StringUtility.MIN1) || function.getName().contains(StringUtility.MIN2) || function.getName().contains(StringUtility.MIN3))
+			else if(functionName.contains(StringUtility.MIN3))
 				return AggregateFunctions.getMinimum(functionParameter, column);
 
-			else if(function.getName().contains(StringUtility.MAX1) || function.getName().contains(StringUtility.MAX2) || function.getName().contains(StringUtility.MAX3))
+			else if(functionName.contains(StringUtility.MAX3))
 				return AggregateFunctions.getMaximum(functionParameter, column);
 		}
 		return null;
